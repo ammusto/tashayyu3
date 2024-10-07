@@ -79,7 +79,7 @@ const DateRangeSlider = () => {
   return (
     <div className="date-slider-container">
       <div>
-        <span>Filter by Death Date</span>
+        <strong>Filter by Death Date</strong>
       </div>
       <ReactSlider
         className="horizontal-slider"

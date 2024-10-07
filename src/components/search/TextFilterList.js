@@ -63,7 +63,23 @@ const TextFilterList = () => {
 
   return (
     <div className='filter-container flex'>
-      Select Texts
+      <div>
+      <strong>Select Texts</strong> - (<button
+          type="button"
+          onClick={handleAddAll}
+          className="text-button"
+          disabled={isDisabled || memoizedTextList.length === 0}
+        >
+          Add Below
+        </button> | <button
+          type="button"
+          onClick={handleRemoveAll}
+          className="text-button"
+          disabled={isDisabled || selectedTexts.length === 0}
+        >
+          Remove Below
+        </button>)
+      </div>
       <div className="text-filter-list">
         {isMetadataLoading ? (
           <div className="no-texts center">Loading texts...</div>
@@ -74,24 +90,6 @@ const TextFilterList = () => {
         ) : (
           <div className="no-texts center">No texts match the selected filters</div>
         )}
-      </div>
-      <div className="text-filter-actions">
-        <button
-          type="button"
-          onClick={handleAddAll}
-          className="add-all-btn"
-          disabled={isDisabled || memoizedTextList.length === 0}
-        >
-          Add All
-        </button>
-        <button
-          type="button"
-          onClick={handleRemoveAll}
-          className="remove-all-btn"
-          disabled={isDisabled || selectedTexts.length === 0}
-        >
-          Remove All
-        </button>
       </div>
     </div>
   );

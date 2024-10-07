@@ -154,6 +154,20 @@ nav .text-button {
   text-decoration: underline;
 }
 
+.text-button:disabled {
+  background-color: transparent;
+  text-decoration: none;
+  color:#999;
+
+}
+
+
+.text-button:disabled:hover {
+  background-color: transparent !important;
+  text-decoration: none;
+  color:#999;
+}
+
 .text-button:hover {
   text-decoration: underline;
   background-color: transparent;

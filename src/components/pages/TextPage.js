@@ -87,12 +87,8 @@ const TextPage = () => {
                 )
               ))}
               <tr>
-                <td>Browse Text</td>
-                <td><Link to={`/reader/${text.text_id}/1/1`}>nuṣūṣ Reader</Link></td>
-              </tr>
-              <tr>
                 <td>Download Text</td>
-                <td></td>
+                <td><em>Coming Soon</em></td>
               </tr>
               <tr>
                 <td>Metadata</td>

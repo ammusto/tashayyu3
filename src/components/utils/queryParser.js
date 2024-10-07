@@ -30,7 +30,7 @@ export function parseAdvancedQuery(query) {
   return tokens;
 }
 
-export function buildSQLQuery(parsedQuery) {
+export function buildSQLQuery(parsedQuery, checkA, checkB) {
   function escapeForFTS5(value) {
     return value.replace(/"/g, '""')
                 .replace(/\؟/g, '_')
@@ -40,7 +40,18 @@ export function buildSQLQuery(parsedQuery) {
                 .replace(/[-[\]{}()+.,\\^$|#\s]/g, '\\$&');
   }
 
-  const proclitics = ['', 'ال', 'و', 'ف', 'ل', 'ب', 'ك', 'وال', 'فال', 'لل', 'بال', 'كال', 'ول', 'فل'];
+  const allProclitics = ['', 'ال', 'و', 'ف', 'ل', 'ب', 'ك', 'وال', 'فال', 'لل', 'بال', 'كال', 'ول', 'فل'];
+  const procliticsToRemoveA = ['ال', 'وال', 'فال', 'لل', 'بال', 'كال'];
+  const procliticsToRemoveB = ['و', 'ف', 'ل', 'ب', 'ك', 'وال', 'فال', 'لل', 'بال', 'كال', 'ول', 'فل'];
+
+  let proclitics = allProclitics;
+
+  if (!checkA) {
+    proclitics = proclitics.filter(p => !procliticsToRemoveA.includes(p));
+  }
+  if (!checkB) {
+    proclitics = proclitics.filter(p => !procliticsToRemoveB.includes(p));
+  }
 
   function processGroup(group) {
     let sql = [];
@@ -75,4 +86,3 @@ export function buildSQLQuery(parsedQuery) {
   const result = processGroup(parsedQuery);
   return result.startsWith('AND ') ? result.substring(4) : result;
 }
-

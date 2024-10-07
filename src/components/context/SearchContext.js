@@ -9,6 +9,8 @@ const SearchContext = createContext();
 export const useSearch = () => useContext(SearchContext);
 
 export const SearchProvider = ({ children }) => {
+  const [checkA, setCheckA] = useState(true);
+  const [checkB, setCheckB] = useState(true);
   const { metadata, isLoading: isMetadataLoading } = useMetadata();
   const [searchQuery, setSearchQuery] = useState('');
   const [originalQuery, setOriginalQuery] = useState('');
@@ -59,6 +61,12 @@ export const SearchProvider = ({ children }) => {
     });
   }, [metadata, selectedGenres, textFilter, dateRange]);
 
+  const handleProcliticsChange = useCallback((newCheckA, newCheckB) => {
+    setCheckA(newCheckA);
+    setCheckB(newCheckB);
+  }, []);
+
+
   const handleSearch = useCallback(async (query, searchTexts, page = 1) => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return;
@@ -70,15 +78,15 @@ export const SearchProvider = ({ children }) => {
     setHasSearched(true);
     try {
       let textsToSearch = searchTexts.length > 0 ? searchTexts : memoizedFilteredTexts.map(text => text.id);
-      const sqlQuery = buildSQLQuery(parsedQuery);
+      const sqlQuery = buildSQLQuery(parsedQuery, checkA, checkB);
 
       const results = await performSearch(sqlQuery, textsToSearch);
-      
+
       setAllSearchResults(results.results);
       setTotalResults(results.totalResults);
       setTotalPages(Math.ceil(results.totalResults / 20));
       setCurrentPage(page);
-      
+
       const startIndex = (page - 1) * 20;
       setDisplayedResults(results.results.slice(startIndex, startIndex + 20));
     } catch (error) {
@@ -90,7 +98,7 @@ export const SearchProvider = ({ children }) => {
     } finally {
       setIsSearching(false);
     }
-  }, [memoizedFilteredTexts]);
+  }, [memoizedFilteredTexts, checkA, checkB]);
 
   const handlePageChange = useCallback(
     debounce((newPage) => {
@@ -147,11 +155,14 @@ export const SearchProvider = ({ children }) => {
     metadata,
     isMetadataLoading,
     isChangingPage,
+    handleProcliticsChange,
+    checkA,
+    checkB
   }), [
     memoizedFilteredTexts, searchQuery, originalQuery, selectedTexts, selectedTextDetails,
     selectedGenres, textFilter, allSearchResults, displayedResults, isSearching, currentPage,
     dateRange, setTotalResults, totalResults, totalPages, clearSelectedTexts, hasSearched, handleSearch,
-    handlePageChange, resetSearch, metadata, isMetadataLoading, isChangingPage,
+    handlePageChange, resetSearch, metadata, isMetadataLoading, isChangingPage, handleProcliticsChange, checkA, checkB
   ]);
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;

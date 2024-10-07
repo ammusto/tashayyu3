@@ -4,6 +4,7 @@ import FilterDropdown from './FilterDropdown';
 import TextFilterList from './TextFilterList';
 import SelectedTextsList from './SelectedTextsList';
 import DateRangeSlider from './DateRangeSlider';
+import SearchInput from './SearchInput';
 
 const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds = [], isOpen, onToggle }) => {
   const {
@@ -17,15 +18,20 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     setSelectedGenres,
     totalResults,
     resetSearch,
-    searchQuery
+    searchQuery,
+    handleProcliticsChange
   } = useSearch();
 
   const [localQuery, setLocalQuery] = useState(initialQuery);
   const isInitialMount = useRef(true);
 
-  const handleQueryChange = useCallback((e) => {
-    setLocalQuery(e.target.value);
+  const handleQueryChange = useCallback((value) => {
+    setLocalQuery(value);
   }, []);
+
+  const handleProcliticsChangeLocal = useCallback((checkA, checkB) => {
+    handleProcliticsChange(checkA, checkB);
+  }, [handleProcliticsChange]);
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
@@ -74,12 +80,11 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     <div className="search-form-container">
       <form onSubmit={handleSubmit}>
         <div className="search-bar-container">
-          <input
-            className="search-form-input"
-            type="text"
+          <SearchInput
             value={localQuery}
             onChange={handleQueryChange}
             placeholder="Search"
+            onProcliticsChange={handleProcliticsChangeLocal}
           />
           <button
             type="button"
@@ -95,14 +100,14 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
           <div className="filter-middle flex">
             <div className='filter-left'>
               <div className='filter-container flex center'>
-                Filter Authors and Texts
+                <strong>Filter Authors and Texts</strong>
                 <input
                   type="text"
                   value={textFilter}
                   onChange={(e) => setTextFilter(e.target.value)}
                   placeholder=""
                 />
-                Select Genres
+               <strong> Select Genres</strong>
                 <FilterDropdown
                   label=""
                   options={metadata?.genreOptions || []}
@@ -111,16 +116,15 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
                   onReset={handleResetGenres}
                 />
                 <DateRangeSlider />
+                <strong>Selected Texts</strong>
+                <SelectedTextsList />
               </div>
             </div>
             <div className="filter-right center">
               <TextFilterList initialTextIds={initialTextIds} />
             </div>
           </div>
-          <div className="flex column gap10 center">
-            Selected Texts
-            <SelectedTextsList />
-          </div>
+
         </div>
         <div className='flex search-button-container'>
           <button
@@ -135,7 +139,7 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
             className='reset-button'
             onClick={handleReset}
           >
-            Clear Search
+            Reset Search and Filters
           </button>
         </div>
       </form>

@@ -26,7 +26,7 @@ const SelectedTextsList = () => {
             onChange={() => handleRemoveText(text.id)}
             className="text-checkbox"
           />
-          {text.title} - {text.author} ({text.date})
+          {text.title} ({text.date})
         </label>
       ))}
       

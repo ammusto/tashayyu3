@@ -36,7 +36,6 @@ button:disabled:hover {
   width: 100%;
   text-align: center;
   font-size: 2rem !important;
-  margin-bottom: 10px;
   direction: rtl;
 }
 
@@ -64,13 +63,13 @@ form {
 
 
 .filter-left {
-  width: 40%;
+  width: 45%;
   display: flex;
   flex-direction: row;
 }
 
 .filter-right {
-  width: 60%;
+  width: 55%;
 }
 
 .filter-left .filter-container .filter-dropdown {
@@ -163,8 +162,12 @@ table tr:last-child td {
   margin-top: 10px;
 }
 
+.filter-right .text-filter-list {
+  height:500px;
+}
+
 .text-filter-list {
-  height: 225px;
+  height: 235px;
   overflow-y: auto;
   border: 1px solid #ccc;
   width: 100%;
@@ -264,11 +267,10 @@ table tr:last-child td {
 
 
 .text-filter-actions {
-  margin-top: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10%;
+  gap: 10px;
 }
 
 .text-filter-list {
@@ -295,6 +297,7 @@ table tr:last-child td {
   width: 25%;
   display: flex;
   margin: 10px;
+  margin-bottom:0px;
   font-size: 1rem;
   text-align: center;
   border: 1px solid #ccc;
@@ -355,7 +358,6 @@ table tr:last-child td {
 .toggle-form-button {
   height:40px;
   width:50px;
-margin-bottom:10px;
 margin-left:10px;
 }
 
@@ -369,4 +371,14 @@ margin-left:10px;
 .search-options.closed {
   max-height: 0;
   opacity: 0;
+}
+
+.checkbox-container {
+  min-width:10%;
+  display: flex;
+  flex-direction: column;
+}
+
+.checkbox-container label {
+  display: block;
 }
