@@ -27,7 +27,7 @@ const DateRangeSlider = () => {
 
   const debouncedSetDateRange = useCallback(
     debounce((newRange) => {
-      setDateRange(newRange); // Trigger filtering
+      setDateRange(newRange);
     }, 300),
     [setDateRange]
   );

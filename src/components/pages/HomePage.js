@@ -2,32 +2,27 @@ import React from 'react';
 
 const HomePage = () => {
   return (
+    <div className='container'>
       <div className='main'>
         <div className='text-content'>
-          <h2>A Corpus of Digitally Neglected Texts</h2>
-          <p>Nuṣūṣ is a corpus of digitized Arabic texts designed to fill gaps in extant digital corpora. Originally a collection of early Sufi and Sufi-adjacent texts, nuṣūṣ has since expanded to include early works on <em>kalām</em>, <em>falsafa</em>, and Christian theology. Through this website, users can: browse text metadata, including author biographies; read these works online; and, most importantly, search the contents of texts in the corpus. The digitized versions of these texts are available to download here on nuṣūṣ for individuals to use for computational textual analysis or other interests. You can also find all the data for nuṣūṣ on the project's <a href="https://github.com/ammusto/nusus-static">github</a>.</p>
-          <p>If you are interested in learning more or potentially contributing to this project, please <a href="mailto:nususcorpus@gmail.com"> contact us</a>!</p>
-
-        </div>
-        <div className="text-content">
-          <h2>Corpus Details</h2>
-          <p>We initially envisoned nuṣūṣ as a database for early Sufi texts not included in other digitized corpora, but the project has since expanded to include <em>falsafa</em>, <em>kalām</em>, and Christian theological works.</p>
-          <p>To digitize these texts, we use <a href="https://www.escriptorium.uk/">eScriptorium,</a> a digital palaeography framework, which uses the <a href="https://kraken.re/master/index.html">kraken</a> OCR engine. For our project we use a kraken OCR model developped by the <a href="https://openiti.org/">OpenITI team</a>.</p>
-          <p>Although the goal of nuṣūṣ is to digitize and make available new texts, we have decided to include some works that have already been digitized and are extant in other corpora. Our reasoning for this to consolidate Sufi, <em>falsafa</em>, <em>kalām</em>, and Christian theological texts in one corpus and to increase the utility of our database and its search functionality. Texts imported from other corpora are marked as such in nuṣūṣ.</p>
-          <p>We have an internal list of new texts, but if you have any suggestions or recommendations for texts to be included, please <a href="mailto:nususcorpus@gmail.com"> contact us</a>.
-          </p>
+          <h2>A Corpus of Digitized Shīʿī Texts</h2>
+          <p>Tashayyu3 is a searchable corpus of digitized Shīʿī texts drawn from the meta corpus consolidated by the <a href="https://openiti.org/">OpenITI team</a> and the <a href='https://kitab-project.org/'>KITAB project</a>. Although these texts have been digitzed and available online for many years, there have been no efforts to make them accessible to the non-technical user, those without the requisite coding/software development skills to access, analyze, and search these texts. Tashayyu3 is a stop-gap measure, as it is a lightweight website with limited search functions, but it is an important step in making these texts available to perform advanced searches, texts that are not represented in the most frequently used searchable corpus, al-Maktaba al-Shāmila.</p>
+          <p>
+            Through this website, users can browse text and author metadata, and, most importantly, search the contents of texts in the corpus. The digitized versions of these texts are available to download on the <a href='https://github.com/OpenITI'>OpenITI github</a> in the mARkdown encoding format, but I am currently in the process of cleaning and re-encoding them into TEI XML and JSON formats.</p>
+          <p>To learn more about how to use this website, please go to the User Guide, linked at the top of this page</p>
 
         </div>
         <div className="text-content">
           <h2>Corpus Stats</h2>
           <ul className='corpus-stats'>
-            <li><strong>Texts </strong>91</li>
-            <li><strong>Authors </strong>34</li>
-            <li><strong>Tokens </strong>1083050</li>
-            <li><strong>Pages </strong>4707</li>
+            <li><strong>Texts </strong>839</li>
+            <li><strong>Authors </strong>435</li>
+            <li><strong>Tokens </strong>135,302,103</li>
+            <li><strong>Pages </strong>609,046</li>
           </ul>
         </div>
       </div>
+    </div>
   );
 };
 

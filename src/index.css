@@ -324,3 +324,15 @@ nav .text-button {
 .page-info {
   text-align: center;
 }
+
+.search-form-input {
+  width: 100%;
+  text-align: center;
+  font-size: 2rem !important;
+  direction: rtl;
+}
+
+.search-form-input::placeholder {
+  font-size: 1rem;
+  transform: translateY(-.25rem);
+}

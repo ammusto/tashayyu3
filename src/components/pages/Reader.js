@@ -7,12 +7,11 @@ import LoadingGif from '../utils/LoadingGif';
 const Reader = () => {
   const { textId, vol, pageNum: initialPageNum } = useParams();
   const location = useLocation();
-  const navigate = useNavigate();
   const { metadata } = useMetadata();
   const [pages, setPages] = useState({});
   const [currentPageNum, setCurrentPageNum] = useState(parseInt(initialPageNum, 10));
   const [isLoading, setIsLoading] = useState(true);
-  const [totalPagesInBook, setTotalPagesInBook] = useState(0);
+  const [, setTotalPagesInBook] = useState(0);
 
   const highlightTerms = new URLSearchParams(location.search).get('highlight')?.split(/[|+]/) || [];
 
@@ -118,9 +117,7 @@ const Reader = () => {
   };
 
   if (isLoading && Object.keys(pages).length === 0) {
-    return <div className='container'>
-      <div className='main'>
-        <div className='center'><LoadingGif /></div></div></div>;
+    return <LoadingGif />;
   }
 
   const currentPageContent = pages[currentPageNum]?.text || '';

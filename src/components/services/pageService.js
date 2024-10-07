@@ -1,10 +1,8 @@
-// services/pageService.js
-
-const PAGES_TO_LOAD = 20; // Pages to load on each side
+import API_URL from '../../config/api';
 
 export const fetchPages = async (textId, vol, pageNum) => {
   try {
-    const response = await fetch(`http://localhost:3001/api/pages?textId=${textId}&vol=${vol}&pageNum=${pageNum}`);
+    const response = await fetch(`${API_URL}/api/pages?textId=${textId}&vol=${vol}&pageNum=${pageNum}`);
     if (!response.ok) {
       throw new Error('Failed to fetch pages');
     }

@@ -1,6 +1,8 @@
+import API_URL from '../../config/api';
+
 export async function fetchData() {
   try {
-    const response = await fetch('http://localhost:3001/api/metadata');
+    const response = await fetch(`${API_URL}/api/metadata`);
     const text = await response.text();
     
     if (!response.ok) {

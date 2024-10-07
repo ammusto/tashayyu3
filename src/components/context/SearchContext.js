@@ -66,7 +66,6 @@ export const SearchProvider = ({ children }) => {
     setCheckB(newCheckB);
   }, []);
 
-
   const handleSearch = useCallback(async (query, searchTexts, page = 1) => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return;
@@ -100,15 +99,17 @@ export const SearchProvider = ({ children }) => {
     }
   }, [memoizedFilteredTexts, checkA, checkB]);
 
-  const handlePageChange = useCallback(
-    debounce((newPage) => {
-      setIsChangingPage(true);
-      const startIndex = (newPage - 1) * 20;
-      setDisplayedResults(allSearchResults.slice(startIndex, startIndex + 20));
-      setCurrentPage(newPage);
-      setIsChangingPage(false);
-    }, 300),
-    [allSearchResults]
+  const handlePageChange = useCallback((newPage) => {
+    setIsChangingPage(true);
+    const startIndex = (newPage - 1) * 20;
+    setDisplayedResults(allSearchResults.slice(startIndex, startIndex + 20));
+    setCurrentPage(newPage);
+    setIsChangingPage(false);
+  }, [allSearchResults]);
+
+  const debouncedHandlePageChange = useMemo(
+    () => debounce(handlePageChange, 300),
+    [handlePageChange]
   );
 
   const resetSearch = useCallback(() => {
@@ -149,7 +150,7 @@ export const SearchProvider = ({ children }) => {
     totalPages,
     hasSearched,
     handleSearch,
-    handlePageChange,
+    handlePageChange: debouncedHandlePageChange,
     resetSearch,
     clearSelectedTexts,
     metadata,
@@ -161,8 +162,9 @@ export const SearchProvider = ({ children }) => {
   }), [
     memoizedFilteredTexts, searchQuery, originalQuery, selectedTexts, selectedTextDetails,
     selectedGenres, textFilter, allSearchResults, displayedResults, isSearching, currentPage,
-    dateRange, setTotalResults, totalResults, totalPages, clearSelectedTexts, hasSearched, handleSearch,
-    handlePageChange, resetSearch, metadata, isMetadataLoading, isChangingPage, handleProcliticsChange, checkA, checkB
+    dateRange, totalResults, totalPages, hasSearched, handleSearch,
+    debouncedHandlePageChange, resetSearch, clearSelectedTexts, metadata, isMetadataLoading, 
+    isChangingPage, handleProcliticsChange, checkA, checkB
   ]);
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;

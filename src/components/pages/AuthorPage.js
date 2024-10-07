@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMetadata, useAuthor, useAuthorTexts } from '../context/metadataContext';
 import LoadingGif from '../utils/LoadingGif';
@@ -16,7 +16,7 @@ const AuthorPage = () => {
     // Add any other fields you want to display
   ];
 
-  if (isLoading) return <div className="container"><div className='main'><div className='text-content'><LoadingGif /></div></div></div>;
+  if (isLoading) return <LoadingGif />;
   if (error) return <div className="container"><div className='main'><div className='text-content'>Error: {error}</div></div></div>;
   if (!author) return <div className="container"><div className='main'><div className='text-content'>Author not found. ID: {authorId}</div></div></div>;
 

@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { Link } from 'react-router-dom';
 
 const CONTEXTSIZE = 8;
 
@@ -10,11 +9,6 @@ const ResultPreview = ({ query, vol, textId, pageNum, text, matchPositions }) =>
       .replace(/ؤ/g, 'و')
       .replace(/[أآإ]/g, 'ا');
   };
-
-  const formatHighlightQuery = (query) => {
-    return query.replace(/\s*([|+])\s*/g, '$1');
-  };
-
 
   const highlightedSnippets = useMemo(() => {
     if (!query || !text) return [];
@@ -56,7 +50,7 @@ const ResultPreview = ({ query, vol, textId, pageNum, text, matchPositions }) =>
       const escaped = escapeRegExp(term);
       const result = escaped
         .replace(/\*/g, '(.*?)')  // Replace * with zero or more characters of any type (greedy)
-        .replace(/\\\؟/g, '([^\\s]?)');  // Keep ? to match zero or one non-whitespace character
+        .replace(/؟/g, '([^\\s]?)');  // Keep ? to match zero or one non-whitespace character
       return result;
     };
 

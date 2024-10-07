@@ -33,7 +33,7 @@ export function parseAdvancedQuery(query) {
 export function buildSQLQuery(parsedQuery, checkA, checkB) {
   function escapeForFTS5(value) {
     return value.replace(/"/g, '""')
-                .replace(/\؟/g, '_')
+                .replace(/؟/g, '_')
                 .replace(/ئى/g, 'ي')
                 .replace(/ؤ/g, 'و')
                 .replace(/[أآإ]/g, 'ا')

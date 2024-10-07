@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import WaitingOverlay from '../WaitingOverlay';
 
@@ -23,10 +23,10 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
     const escaped = escapeRegExp(term);
     return escaped
       .replace(/\*/g, '(.*?)')
-      .replace(/\\\؟/g, '([^\\s]?)');
+      .replace(/؟/g, '([^\\s]?)');
   };
 
-  const findAllOccurrences = (searchTerm, text) => {
+  const findAllOccurrences = useCallback((searchTerm, text) => {
     const terms = searchTerm.split(' ');
     let regexPattern;
     if (terms.length > 1) {
@@ -45,9 +45,9 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
       results.push({ start: match.index, end: regex.lastIndex });
     }
     return results;
-  };
+  }, []);
 
-  const createDownloadSnippets = (result, query) => {
+  const createDownloadSnippets = useCallback((result, query) => {
     const normalizedQuery = normalizeQuery(query);
     const normalizedText = normalizeQuery(result.text);
     const queryParts = normalizedQuery.split(/[|+]/).map(part => part.trim()).filter(Boolean);
@@ -75,9 +75,9 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
       const end = Math.min(normalizedText.length, position.end + DOWNLOAD_CONTEXT_SIZE);
       return normalizedText.slice(start, end);
     });
-  };
+  }, [findAllOccurrences]);
 
-  const generateCSV = (data) => {
+  const generateCSV = useCallback((data) => {
     const fields = ['text_id', 'page_num', 'vol', 'title_ar', 'snippets'];
     const csv = [
       fields.join(','),
@@ -87,7 +87,7 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
       })
     ].join('\n');
     return csv;
-  };
+  }, [createDownloadSnippets, searchQuery]);
 
   const handleDownload = useCallback(() => {
     setIsDownloading(true);
@@ -133,7 +133,7 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
     } finally {
       setIsDownloading(false);
     }
-  }, [allSearchResults, downloadFormat, searchQuery]);
+  }, [allSearchResults, downloadFormat, searchQuery, createDownloadSnippets, generateCSV]);
 
   return (
     <div className="download-container">

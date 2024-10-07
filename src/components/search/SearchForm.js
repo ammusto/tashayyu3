@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { useSearch } from '../context/SearchContext';
 import FilterDropdown from './FilterDropdown';
 import TextFilterList from './TextFilterList';
@@ -16,7 +16,6 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     setTextFilter,
     selectedGenres,
     setSelectedGenres,
-    totalResults,
     resetSearch,
     searchQuery,
     handleProcliticsChange
@@ -73,19 +72,32 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     if (!isInitialMount.current && searchQuery !== localQuery) {
       setLocalQuery(searchQuery);
     }
-  }, [searchQuery]);
+  }, [searchQuery, localQuery]);
 
+  const memoizedSearchInput = useMemo(() => (
+    <SearchInput
+      value={localQuery}
+      onChange={handleQueryChange}
+      placeholder="Search"
+      onProcliticsChange={handleProcliticsChangeLocal}
+    />
+  ), [localQuery, handleQueryChange, handleProcliticsChangeLocal]);
+
+  const memoizedFilterDropdown = useMemo(() => (
+    <FilterDropdown
+      label=""
+      options={metadata?.genreOptions || []}
+      selectedOptions={selectedGenres}
+      onSelectionChange={setSelectedGenres}
+      onReset={handleResetGenres}
+    />
+  ), [metadata?.genreOptions, selectedGenres, setSelectedGenres, handleResetGenres]);
 
   return (
     <div className="search-form-container">
       <form onSubmit={handleSubmit}>
         <div className="search-bar-container">
-          <SearchInput
-            value={localQuery}
-            onChange={handleQueryChange}
-            placeholder="Search"
-            onProcliticsChange={handleProcliticsChangeLocal}
-          />
+          {memoizedSearchInput}
           <button
             type="button"
             className="toggle-form-button"
@@ -107,14 +119,8 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
                   onChange={(e) => setTextFilter(e.target.value)}
                   placeholder=""
                 />
-               <strong> Select Genres</strong>
-                <FilterDropdown
-                  label=""
-                  options={metadata?.genreOptions || []}
-                  selectedOptions={selectedGenres}
-                  onSelectionChange={setSelectedGenres}
-                  onReset={handleResetGenres}
-                />
+                <strong>Select Genres</strong>
+                {memoizedFilterDropdown}
                 <DateRangeSlider />
                 <strong>Selected Texts</strong>
                 <SelectedTextsList />
@@ -124,7 +130,6 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
               <TextFilterList initialTextIds={initialTextIds} />
             </div>
           </div>
-
         </div>
         <div className='flex search-button-container'>
           <button

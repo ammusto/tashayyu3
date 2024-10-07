@@ -8,10 +8,7 @@ const TextFilterList = () => {
     setSelectedTexts,
     setSelectedTextDetails,
     isMetadataLoading,
-    metadata,
-    selectedGenres,
-    textFilter,
-    dateRange
+    metadata
   } = useSearch();
 
   const handleTextToggle = useCallback((text) => {

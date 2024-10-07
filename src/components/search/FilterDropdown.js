@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import './FilterDropdown.css';
 
 const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, onReset }) => {
@@ -6,8 +6,8 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef(null);
 
-  const safeOptions = Array.isArray(options) ? options : [];
-  const safeSelectedOptions = Array.isArray(selectedOptions) ? selectedOptions : [];
+  const safeOptions = useMemo(() => Array.isArray(options) ? options : [], [options]);
+  const safeSelectedOptions = useMemo(() => Array.isArray(selectedOptions) ? selectedOptions : [], [selectedOptions]);
 
   const sortedOptions = useMemo(() => {
     return [...safeOptions].sort((a, b) => {
@@ -38,7 +38,7 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
     };
   }, []);
 
-  const handleToggle = (option) => {
+  const handleToggle = useCallback((option) => {
     if (option == null) return;
     const optionValue = typeof option === 'object' ? option.value : option;
     const newSelectedOptions = safeSelectedOptions.includes(optionValue)
@@ -46,16 +46,16 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
       : [...safeSelectedOptions, optionValue];
     onSelectionChange(newSelectedOptions);
     setSearchTerm('');  // Clear the search term after selection
-  };
+  }, [safeSelectedOptions, onSelectionChange]);
 
-  const handleUnselectAll = (event) => {
+  const handleUnselectAll = useCallback((event) => {
     event.stopPropagation();  // Prevent event from bubbling up
     event.preventDefault();   // Prevent default button behavior
     onReset();
     setSearchTerm('');
-  };
+  }, [onReset]);
 
-  const getSelectedLabels = () => {
+  const getSelectedLabels = useCallback(() => {
     return safeSelectedOptions.map(value =>
       safeOptions.find(option =>
         (typeof option === 'object' ? option.value : option) === value
@@ -63,12 +63,15 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
     ).filter(Boolean).map(option =>
       typeof option === 'object' ? option.label : String(option)
     );
-  };
+  }, [safeOptions, safeSelectedOptions]);
 
-  const selectedLabels = getSelectedLabels();
-  const displayText = selectedLabels.length > 0
-    ? `${selectedLabels.join(', ')} (${selectedLabels.length})`
-    : '';
+  const selectedLabels = useMemo(() => getSelectedLabels(), [getSelectedLabels]);
+  const displayText = useMemo(() => 
+    selectedLabels.length > 0
+      ? `${selectedLabels.join(', ')} (${selectedLabels.length})`
+      : '',
+    [selectedLabels]
+  );
 
   return (
     <div className="filter-dropdown" ref={dropdownRef} id="filter-dropdown">
@@ -96,13 +99,15 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
             const optionId = `option-${optionValue || index}`;
             return (
               <div key={optionId} className="option-container">
-
-                <label htmlFor={optionId}>                <input
-                  id={optionId}
-                  type="checkbox"
-                  checked={safeSelectedOptions.includes(optionValue)}
-                  onChange={() => handleToggle(option)}
-                />{optionLabel}</label>
+                <label htmlFor={optionId}>
+                  <input
+                    id={optionId}
+                    type="checkbox"
+                    checked={safeSelectedOptions.includes(optionValue)}
+                    onChange={() => handleToggle(option)}
+                  />
+                  {optionLabel}
+                </label>
               </div>
             );
           })}
@@ -112,4 +117,4 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
   );
 };
 
-export default FilterDropdown;
+export default React.memo(FilterDropdown);
