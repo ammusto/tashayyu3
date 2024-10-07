@@ -1,4 +1,5 @@
 import React from 'react';
+import LoadingGif from './LoadingGif';
 
 const Progress = ({ value }) => {
   return (
@@ -15,7 +16,7 @@ const LoadingBar = ({ progress }) => {
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="mb-2 flex justify-between items-center">
-        <span className="text-sm font-medium">Loading...</span>
+        <span className="text-sm font-medium"><LoadingGif /></span>
         <span className="text-sm font-medium">{progress}%</span>
       </div>
       <Progress value={progress} />

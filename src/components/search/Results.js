@@ -16,11 +16,21 @@ const Results = React.memo(({ displayedResults, query, currentPage, totalResults
   }
 
   const startIndex = (currentPage - 1) * itemsPerPage + 1;
-  const endIndex = Math.min(currentPage * itemsPerPage, totalResults);
+  const endIndex = Math.min(currentPage * itemsPerPage, 5000);
+
+  const displayTotalResults = totalResults > 5000 ? '5000' : totalResults;
+  const actualTotalResults = totalResults > 5000 ? `(total ${totalResults})` : '';
+
+  const maxPages = Math.min(250, totalPages);
 
   return (
     <div>
-      <p>Showing results {startIndex} - {endIndex} of {totalResults}</p>
+      <p>
+        {displayTotalResults < 20
+          ? `Showing results 1 - ${displayTotalResults}`
+          : `Showing results ${startIndex} - ${endIndex} of ${displayTotalResults} ${actualTotalResults}`
+        }
+      </p>
       <table className='results-table'>
         <thead>
           <tr>
@@ -51,10 +61,10 @@ const Results = React.memo(({ displayedResults, query, currentPage, totalResults
       </table>
       <Pagination
         currentPage={currentPage}
-        totalItems={totalResults}
+        totalItems={Math.min(5000, totalResults)}
         itemsPerPage={itemsPerPage}
         onPageChange={onPageChange}
-        totalPages={totalPages}
+        totalPages={maxPages}
       />
     </div>
   );

@@ -1,23 +1,18 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useSearch } from '../context/SearchContext';
 
-const TextFilterList = ({ initialTextIds = [] }) => {
+const TextFilterList = () => {
   const {
     filteredTexts,
     selectedTexts,
     setSelectedTexts,
     setSelectedTextDetails,
     isMetadataLoading,
-    metadata
+    metadata,
+    selectedGenres,
+    textFilter,
+    dateRange
   } = useSearch();
-
-  useEffect(() => {
-    if (initialTextIds.length > 0 && metadata?.texts) {
-      const textsToAdd = metadata.texts.filter(text => initialTextIds.includes(text.id));
-      setSelectedTexts(initialTextIds);
-      setSelectedTextDetails(textsToAdd.map(t => ({ id: t.id, title: t.title_ar, author: t.author_ar, date: t.date })));
-    }
-  }, [initialTextIds, metadata, setSelectedTexts, setSelectedTextDetails]);
 
   const handleTextToggle = useCallback((text) => {
     setSelectedTexts(prev => {
@@ -47,13 +42,12 @@ const TextFilterList = ({ initialTextIds = [] }) => {
   }, [filteredTexts, selectedTexts, setSelectedTexts, setSelectedTextDetails]);
 
   const handleRemoveAll = useCallback(() => {
-    const filteredTextIds = new Set(filteredTexts.map(t => t.id));
-    setSelectedTexts(prev => prev.filter(id => !filteredTextIds.has(id)));
-    setSelectedTextDetails(prev => prev.filter(t => !filteredTextIds.has(t.id)));
-  }, [filteredTexts, setSelectedTexts, setSelectedTextDetails]);
+    setSelectedTexts([]);
+    setSelectedTextDetails([]);
+  }, [setSelectedTexts, setSelectedTextDetails]);
 
   const memoizedTextList = useMemo(() => {
-    return (metadata?.texts || []).map(text => (
+    return filteredTexts.map(text => (
       <label key={text.id}>
         <input
           type="checkbox"
@@ -63,7 +57,7 @@ const TextFilterList = ({ initialTextIds = [] }) => {
         {text.title_ar} - {text.author_ar} ({text.date})
       </label>
     ));
-  }, [metadata, selectedTexts, handleTextToggle]);
+  }, [filteredTexts, selectedTexts, handleTextToggle]);
 
   const isDisabled = isMetadataLoading || !metadata?.texts?.length;
 
@@ -75,8 +69,10 @@ const TextFilterList = ({ initialTextIds = [] }) => {
           <div className="no-texts center">Loading texts...</div>
         ) : !metadata?.texts?.length ? (
           <div className="no-texts center">No texts available</div>
-        ) : (
+        ) : memoizedTextList.length > 0 ? (
           memoizedTextList
+        ) : (
+          <div className="no-texts center">No texts match the selected filters</div>
         )}
       </div>
       <div className="text-filter-actions">
@@ -84,7 +80,7 @@ const TextFilterList = ({ initialTextIds = [] }) => {
           type="button"
           onClick={handleAddAll}
           className="add-all-btn"
-          disabled={isDisabled}
+          disabled={isDisabled || memoizedTextList.length === 0}
         >
           Add All
         </button>
@@ -92,7 +88,7 @@ const TextFilterList = ({ initialTextIds = [] }) => {
           type="button"
           onClick={handleRemoveAll}
           className="remove-all-btn"
-          disabled={isDisabled}
+          disabled={isDisabled || selectedTexts.length === 0}
         >
           Remove All
         </button>

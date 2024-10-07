@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMetadata, useText, useAuthor } from '../context/metadataContext';
+import LoadingGif from '../utils/LoadingGif';
 
 const TextPage = () => {
   const { textId } = useParams();
@@ -51,7 +52,7 @@ const TextPage = () => {
     }
   }, [text, author, labelMap]);
 
-  if (isLoading) return <div className="container"><div className='main'><div className='text-content'>Loading...</div></div></div>;
+  if (isLoading) return <div className="container"><div className='main'><div className='text-content'><LoadingGif /></div></div></div>;
   if (error) return <div className="container"><div className='main'><div className='text-content'>Error: {error}</div></div></div>;
   if (!text) return <div className="container"><div className='main'><div className='text-content'>Text not found. ID: {textId}</div></div></div>;
   if (!author) return <div className="container"><div className='main'><div className='text-content'>Author not found for text: {text.title_lat}</div></div></div>;

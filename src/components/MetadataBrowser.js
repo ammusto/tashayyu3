@@ -89,7 +89,7 @@ const MetadataBrowser = () => {
       <div className='search-form'>
         <input
           type="text"
-          placeholder="Search..."
+          placeholder="Filter"
           value={searchTerm}
           onChange={handleSearchChange}
           className='search-form-input'

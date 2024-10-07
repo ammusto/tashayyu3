@@ -1,24 +1,29 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './FilterDropdown.css';
 
-const FilterDropdown = ({ label, options, selectedOptions, onChange }) => {
+const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, onReset }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredOptions, setFilteredOptions] = useState([]);
   const dropdownRef = useRef(null);
 
   const safeOptions = Array.isArray(options) ? options : [];
   const safeSelectedOptions = Array.isArray(selectedOptions) ? selectedOptions : [];
 
-  useEffect(() => {
-    setFilteredOptions(
-      safeOptions.filter(option => {
-        if (option == null) return false;
-        const optionLabel = typeof option === 'object' ? option.label : String(option);
-        return optionLabel.toLowerCase().includes(searchTerm.toLowerCase());
-      })
-    );
-  }, [searchTerm, safeOptions]);
+  const sortedOptions = useMemo(() => {
+    return [...safeOptions].sort((a, b) => {
+      const labelA = typeof a === 'object' ? a.label : String(a);
+      const labelB = typeof b === 'object' ? b.label : String(b);
+      return labelA.localeCompare(labelB);
+    });
+  }, [safeOptions]);
+
+  const filteredOptions = useMemo(() => {
+    return sortedOptions.filter(option => {
+      if (option == null) return false;
+      const optionLabel = typeof option === 'object' ? option.label : String(option);
+      return optionLabel.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  }, [sortedOptions, searchTerm]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -39,38 +44,66 @@ const FilterDropdown = ({ label, options, selectedOptions, onChange }) => {
     const newSelectedOptions = safeSelectedOptions.includes(optionValue)
       ? safeSelectedOptions.filter(item => item !== optionValue)
       : [...safeSelectedOptions, optionValue];
-    onChange(newSelectedOptions);
+    onSelectionChange(newSelectedOptions);
+    setSearchTerm('');  // Clear the search term after selection
   };
 
+  const handleUnselectAll = (event) => {
+    event.stopPropagation();  // Prevent event from bubbling up
+    event.preventDefault();   // Prevent default button behavior
+    onReset();
+    setSearchTerm('');
+  };
+
+  const getSelectedLabels = () => {
+    return safeSelectedOptions.map(value =>
+      safeOptions.find(option =>
+        (typeof option === 'object' ? option.value : option) === value
+      )
+    ).filter(Boolean).map(option =>
+      typeof option === 'object' ? option.label : String(option)
+    );
+  };
+
+  const selectedLabels = getSelectedLabels();
+  const displayText = selectedLabels.length > 0
+    ? `${selectedLabels.join(', ')} (${selectedLabels.length})`
+    : '';
+
   return (
-    <div className="filter-dropdown" ref={dropdownRef}>
-      <label>{label}</label>
+    <div className="filter-dropdown" ref={dropdownRef} id="filter-dropdown">
+      <label id="filter-dropdown-label">{label}</label>
       <div className="search-input-container">
         <input
+          id="filter-dropdown-search"
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onClick={() => setIsOpen(true)}
+          placeholder={displayText || ""}
+          aria-labelledby="filter-dropdown-label"
         />
-        {safeSelectedOptions.length > 0 && (
-          <span className="selected-count">({safeSelectedOptions.length})</span>
-        )}
       </div>
       {isOpen && (
-        <div className="dropdown-content">
+        <div className="dropdown-content" id="filter-dropdown-content">
+          <button id="unselect-all-button"  className='text-button' onClick={handleUnselectAll}>
+            Unselect All
+          </button>
           {filteredOptions.map((option, index) => {
             if (option == null) return null;
             const optionValue = typeof option === 'object' ? option.value : option;
             const optionLabel = typeof option === 'object' ? option.label : String(option);
+            const optionId = `option-${optionValue || index}`;
             return (
-              <label key={optionValue || index}>
-                <input
+              <div key={optionId} className="option-container">
+
+                <label htmlFor={optionId}>                <input
+                  id={optionId}
                   type="checkbox"
                   checked={safeSelectedOptions.includes(optionValue)}
                   onChange={() => handleToggle(option)}
-                />
-                {optionLabel}
-              </label>
+                />{optionLabel}</label>
+              </div>
             );
           })}
         </div>

@@ -137,6 +137,14 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
 
   return (
     <div className="download-container">
+
+      <button
+        onClick={handleDownload}
+        className="download-button"
+        disabled={isDownloading}
+      >
+        Download Results as {downloadFormat.toUpperCase()}
+      </button>
       <select
         value={downloadFormat}
         onChange={(e) => setDownloadFormat(e.target.value)}
@@ -145,13 +153,6 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
         <option value="csv">CSV</option>
         <option value="xlsx">XLSX</option>
       </select>
-      <button
-        onClick={handleDownload}
-        className="download-button"
-        disabled={isDownloading}
-      >
-        Download {downloadFormat.toUpperCase()}
-      </button>
       <WaitingOverlay
         isVisible={isDownloading}
         message="Please wait while your file is being prepared. Do not navigate away from this page."

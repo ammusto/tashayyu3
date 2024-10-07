@@ -11,6 +11,11 @@ const ResultPreview = ({ query, vol, textId, pageNum, text, matchPositions }) =>
       .replace(/[أآإ]/g, 'ا');
   };
 
+  const formatHighlightQuery = (query) => {
+    return query.replace(/\s*([|+])\s*/g, '$1');
+  };
+
+
   const highlightedSnippets = useMemo(() => {
     if (!query || !text) return [];
 
@@ -47,7 +52,6 @@ const ResultPreview = ({ query, vol, textId, pageNum, text, matchPositions }) =>
       return results;
     };
 
-
     const wildcardToRegExp = (term) => {
       const escaped = escapeRegExp(term);
       const result = escaped
@@ -55,10 +59,6 @@ const ResultPreview = ({ query, vol, textId, pageNum, text, matchPositions }) =>
         .replace(/\\\؟/g, '([^\\s]?)');  // Keep ? to match zero or one non-whitespace character
       return result;
     };
-    
-
-
-
 
     const queryParts = parseQuery(normalizedQuery);
     let positions = [];

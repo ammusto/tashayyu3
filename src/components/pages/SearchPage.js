@@ -5,6 +5,7 @@ import SearchForm from '../search/SearchForm';
 import Results from '../search/Results';
 import DownloadButton from '../search/DownloadButton';
 import './Search.css';
+import LoadingGif from '../utils/LoadingGif';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -81,32 +82,29 @@ const SearchPage = () => {
   return (
     <div className='container'>
       <div className='main'>
-        <SearchForm 
-          onResetSearch={handleResetSearch} 
-          onSearch={handleSearchSubmit} 
+        <SearchForm
+          onResetSearch={handleResetSearch}
+          onSearch={handleSearchSubmit}
           initialQuery={searchParams.get('query') || ''}
           initialTextIds={searchParams.get('text_ids')?.split(',').map(Number) || []}
           isOpen={isSearchFormOpen}
           totalResults={totalResults}
           onToggle={toggleSearchForm}
         />
-        {displayedResults.length > 0 && (
-          <DownloadButton allSearchResults={allSearchResults} searchQuery={searchQuery} />
-        )}
-        {(isSearching || isChangingPage) && <div className='text-content center'><p>Loading...</p></div>}
+        {(isSearching || isChangingPage) && <div className='text-content center'><p><LoadingGif /></p></div>}
         {!isSearching && !isChangingPage && hasSearched && (
           <Results
             displayedResults={displayedResults || []}
             query={highlightQuery}
             currentPage={currentPage}
-            totalResults={hasMoreResults ? '5000+' : totalResults}
+            totalResults={totalResults}  // Pass the actual total results
             totalPages={totalPages}
             itemsPerPage={ITEMS_PER_PAGE}
             onPageChange={handlePageChangeWithoutSearch}
           />
         )}
-        {!isSearching && !isChangingPage && !hasSearched && (
-          <div className='text-content center'></div>
+        {displayedResults.length > 0 && (
+          <DownloadButton allSearchResults={allSearchResults} searchQuery={searchQuery} />
         )}
       </div>
     </div>

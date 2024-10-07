@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { useSearch } from '../context/SearchContext';
 import FilterDropdown from './FilterDropdown';
 import TextFilterList from './TextFilterList';
@@ -16,20 +16,16 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     selectedGenres,
     setSelectedGenres,
     totalResults,
-    resetSearch
+    resetSearch,
+    searchQuery
   } = useSearch();
 
   const [localQuery, setLocalQuery] = useState(initialQuery);
+  const isInitialMount = useRef(true);
 
-  useEffect(() => {
-    setLocalQuery(initialQuery);
-    setSearchQuery(initialQuery);
-    setSelectedTexts(initialTextIds);
-  }, []);
-
-  const handleQueryChange = (e) => {
+  const handleQueryChange = useCallback((e) => {
     setLocalQuery(e.target.value);
-  };
+  }, []);
 
   const handleSubmit = useCallback((e) => {
     e.preventDefault();
@@ -43,72 +39,106 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     onResetSearch();
   }, [resetSearch, onResetSearch]);
 
+  const handleResetGenres = useCallback(() => {
+    setSelectedGenres([]);
+  }, [setSelectedGenres]);
+
+  const handleToggle = useCallback((e) => {
+    e.stopPropagation();
+    onToggle();
+  }, [onToggle]);
+
+  // Effect to handle initial query and text IDs
+  useEffect(() => {
+    if (isInitialMount.current) {
+      if (initialQuery !== '') {
+        setLocalQuery(initialQuery);
+        setSearchQuery(initialQuery);
+      }
+      if (initialTextIds.length > 0) {
+        setSelectedTexts(initialTextIds);
+      }
+      isInitialMount.current = false;
+    }
+  }, [initialQuery, initialTextIds, setSearchQuery, setSelectedTexts]);
+
+  // Effect to keep localQuery in sync with searchQuery only when searchQuery changes
+  useEffect(() => {
+    if (!isInitialMount.current && searchQuery !== localQuery) {
+      setLocalQuery(searchQuery);
+    }
+  }, [searchQuery]);
+
+
   return (
-    <div>
-      <div className={`search-form-container ${isOpen ? 'open' : 'closed'}`}>
-        <div className='search-form search-page-container flex'>
-          <form onSubmit={handleSubmit}>
-            <div className='filter-top'>
-              <input
-                className='search-form-input'
-                type="text"
-                value={localQuery}
-                onChange={handleQueryChange}
-                placeholder="Enter your search query..."
-              />
-            </div>
-            <div className="filter-middle flex">
-              <div className='filter-left'>
-                <div className='filter-container flex'>
-                  Select Genres
-                  <FilterDropdown
-                    label=""
-                    options={metadata?.genreOptions || []}
-                    selectedOptions={selectedGenres}
-                    onChange={setSelectedGenres}
-                  />
-                  Filter Authors and Texts
-                  <input
-                    type="text"
-                    value={textFilter}
-                    onChange={(e) => setTextFilter(e.target.value)}
-                    placeholder=""
-                  />
-                  <DateRangeSlider />
-                </div>
-              </div>
-              <div className="filter-right">
-                <TextFilterList initialTextIds={initialTextIds} />
-              </div>
-            </div>
-            <div className="flex column gap10">
-              Selected Texts
-              <SelectedTextsList />
-            </div>
-            <div className='flex search-button-container'>
-              <button
-                type="submit"
-                className='search-button'
-                disabled={!localQuery.trim() && selectedTexts.length === 0}
-              >
-                Search
-              </button>
-              <button
-                type="button"
-                className='reset-button'
-                onClick={handleReset}
-              >
-                Reset Search & Results
-              </button>
-            </div>
-          </form>
+    <div className="search-form-container">
+      <form onSubmit={handleSubmit}>
+        <div className="search-bar-container">
+          <input
+            className="search-form-input"
+            type="text"
+            value={localQuery}
+            onChange={handleQueryChange}
+            placeholder="Search"
+          />
+          <button
+            type="button"
+            className="toggle-form-button"
+            onClick={handleToggle}
+            aria-label={isOpen ? "Hide search options" : "Show search options"}
+          >
+            {isOpen ? '☰🡅' : '☰🡇'}
+          </button>
         </div>
-      </div>
-      {totalResults > 0 && (
-        <button className="toggle-form-button" onClick={onToggle}>
-          {isOpen ? 'Hide Search Form' : 'Show Search Form'}
-        </button>
-      )}
+
+        <div className={`search-options ${isOpen ? 'open' : 'closed'}`}>
+          <div className="filter-middle flex">
+            <div className='filter-left'>
+              <div className='filter-container flex center'>
+                Filter Authors and Texts
+                <input
+                  type="text"
+                  value={textFilter}
+                  onChange={(e) => setTextFilter(e.target.value)}
+                  placeholder=""
+                />
+                Select Genres
+                <FilterDropdown
+                  label=""
+                  options={metadata?.genreOptions || []}
+                  selectedOptions={selectedGenres}
+                  onSelectionChange={setSelectedGenres}
+                  onReset={handleResetGenres}
+                />
+                <DateRangeSlider />
+              </div>
+            </div>
+            <div className="filter-right center">
+              <TextFilterList initialTextIds={initialTextIds} />
+            </div>
+          </div>
+          <div className="flex column gap10 center">
+            Selected Texts
+            <SelectedTextsList />
+          </div>
+        </div>
+        <div className='flex search-button-container'>
+          <button
+            type="submit"
+            className='search-button'
+            disabled={!localQuery.trim() && selectedTexts.length === 0}
+          >
+            Search
+          </button>
+          <button
+            type="button"
+            className='reset-button'
+            onClick={handleReset}
+          >
+            Clear Search
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

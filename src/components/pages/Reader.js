@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { fetchPages } from '../services/pageService';
 import { useMetadata } from '../context/metadataContext';
+import LoadingGif from '../utils/LoadingGif';
 
 const Reader = () => {
   const { textId, vol, pageNum: initialPageNum } = useParams();
@@ -13,7 +14,7 @@ const Reader = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [totalPagesInBook, setTotalPagesInBook] = useState(0);
 
-  const highlightTerm = new URLSearchParams(location.search).get('highlight');
+  const highlightTerms = new URLSearchParams(location.search).get('highlight')?.split(/[|+]/) || [];
 
   const bookTitle = metadata?.texts.find(text => text.id === parseInt(textId))?.title_ar || 'Unknown Title';
 
@@ -50,13 +51,17 @@ const Reader = () => {
       .replace(/[أآإ]/g, 'ا');
   }, []);
 
-  const highlightTextInHTML = useCallback((htmlContent, term) => {
-    if (!term) return htmlContent;
+  const highlightTextInHTML = useCallback((htmlContent, terms) => {
+    if (!terms || terms.length === 0) return htmlContent;
 
-    const normalizedTerm = normalizeQuery(term);
+    const normalizedTerms = terms.map(normalizeQuery);
     const normalizedContent = normalizeQuery(htmlContent);
 
-    const regex = new RegExp(`(${normalizedTerm})`, 'gi');
+    const escapeRegExp = (string) => {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    };
+
+    const regex = new RegExp(`(${normalizedTerms.map(escapeRegExp).join('|')})`, 'gi');
     let lastIndex = 0;
     let result = '';
 
@@ -113,7 +118,9 @@ const Reader = () => {
   };
 
   if (isLoading && Object.keys(pages).length === 0) {
-    return <div className="reader-loading">Loading...</div>;
+    return <div className='container'>
+      <div className='main'>
+        <div className='center'><LoadingGif /></div></div></div>;
   }
 
   const currentPageContent = pages[currentPageNum]?.text || '';
@@ -126,14 +133,13 @@ const Reader = () => {
           <div className="page-content">
             <div
               dangerouslySetInnerHTML={{
-                __html: highlightTextInHTML(currentPageContent, highlightTerm),
+                __html: highlightTextInHTML(currentPageContent, highlightTerms),
               }}
             />
             <div className="page-info">
               Volume {vol}, Page {currentPageNum}
             </div>
             {renderPagination()}
-
           </div>
         </div>
       </div>

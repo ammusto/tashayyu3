@@ -2,7 +2,7 @@ import React from 'react';
 import { useSearch } from '../context/SearchContext';
 
 const SelectedTextsList = () => {
-  const { selectedTextDetails, selectedTexts, setSelectedTexts, setSelectedTextDetails, clearSelectedTexts } = useSearch();
+  const { selectedTextDetails, selectedTexts, setSelectedTexts, setSelectedTextDetails } = useSearch();
 
   const handleRemoveText = (id) => {
     setSelectedTexts(prev => prev.filter(textId => textId !== id));
@@ -15,9 +15,9 @@ const SelectedTextsList = () => {
 
   return (
     <div className="text-filter-list">
-      <button onClick={clearSelectedTexts} className="clear-selected-button">
+      {/* <button onClick={clearSelectedTexts} className="clear-selected-button">
         Remove All Selected Texts
-      </button>
+      </button> */}
       {selectedTextDetails.map(text => (
         <label key={text.id} onClick={() => handleRemoveText(text.id)}>
           <input
