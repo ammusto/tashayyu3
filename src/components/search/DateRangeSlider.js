@@ -26,22 +26,22 @@ const DateRangeSlider = () => {
   }, [metadata, setDateRange]);
 
   const debouncedSetDateRange = useCallback(
-    debounce((newRange) => {
-      setDateRange(newRange);
-    }, 300),
+    (newRange) => {
+      debounce((range) => {
+        setDateRange(range);
+      }, 300)(newRange);
+    },
     [setDateRange]
   );
 
   const handleChange = useCallback((newRange) => {
     setLocalRange(newRange);
-    setMinInput(newRange[0]); // Update min input based on slider
-    setMaxInput(newRange[1]); // Update max input based on slider
-
-    // Trigger filtering immediately when slider changes
+    setMinInput(newRange[0]);
+    setMaxInput(newRange[1]);
     debouncedSetDateRange(newRange);
   }, [debouncedSetDateRange]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { value, name } = e.target;
     const parsedValue = parseFloat(value);
 
@@ -52,29 +52,27 @@ const DateRangeSlider = () => {
         setMaxInput(parsedValue);
       }
     }
-  };
+  }, []);
 
   const handleBlur = useCallback(() => {
     let newMin = parseFloat(minInput);
     let newMax = parseFloat(maxInput);
 
-    // Validate the min and max dates
     if (isNaN(newMin) || newMin < sliderProps.min) {
-      newMin = sliderProps.min; // Reset to min range if invalid
+      newMin = sliderProps.min;
     }
     if (isNaN(newMax) || newMax > sliderProps.max) {
-      newMax = sliderProps.max; // Reset to max range if invalid
+      newMax = sliderProps.max;
     }
 
-    // Ensure max is not less than min
     if (newMax < newMin) {
-      newMax = newMin + 50; // Set max to min + 1 if invalid
+      newMax = newMin + 50;
     }
 
     const newRange = [newMin, newMax];
-    setLocalRange(newRange); // Update local range
-    debouncedSetDateRange(newRange); // Apply filtering on blur
-  }, [minInput, maxInput, debouncedSetDateRange, sliderProps]);
+    setLocalRange(newRange);
+    debouncedSetDateRange(newRange);
+  }, [minInput, maxInput, debouncedSetDateRange, sliderProps.min, sliderProps.max]);
 
   return (
     <div className="date-slider-container">
@@ -86,7 +84,7 @@ const DateRangeSlider = () => {
         thumbClassName="thumb"
         trackClassName="track"
         value={localRange}
-        onChange={handleChange} // Update and filter on slider change
+        onChange={handleChange}
         pearling
         minDistance={10}
         {...sliderProps}
@@ -97,7 +95,7 @@ const DateRangeSlider = () => {
           name="minInput"
           value={minInput}
           onChange={handleInputChange}
-          onBlur={handleBlur} // Trigger filtering on blur
+          onBlur={handleBlur}
           className="input-left"
         />
         <input
@@ -105,11 +103,10 @@ const DateRangeSlider = () => {
           name="maxInput"
           value={maxInput}
           onChange={handleInputChange}
-          onBlur={handleBlur} // Trigger filtering on blur
+          onBlur={handleBlur}
           className="input-right"
         />
       </div>
-
     </div>
   );
 };

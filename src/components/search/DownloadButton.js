@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import WaitingOverlay from '../WaitingOverlay';
 
@@ -8,23 +8,23 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadFormat, setDownloadFormat] = useState('csv');
 
-  const normalizeQuery = (query) => {
+  const normalizeQuery = useCallback((query) => {
     return query
       .replace(/ئى/g, 'ي')
       .replace(/ؤ/g, 'و')
       .replace(/[أآإ]/g, 'ا');
-  };
+  }, []);
 
-  const escapeRegExp = (term) => {
+  const escapeRegExp = useCallback((term) => {
     return term.replace(/[.+^${}()|[\]\\؟]/g, '\\$&');
-  };
+  }, []);
 
-  const wildcardToRegExp = (term) => {
+  const wildcardToRegExp = useCallback((term) => {
     const escaped = escapeRegExp(term);
     return escaped
       .replace(/\*/g, '(.*?)')
       .replace(/؟/g, '([^\\s]?)');
-  };
+  }, [escapeRegExp]);
 
   const findAllOccurrences = useCallback((searchTerm, text) => {
     const terms = searchTerm.split(' ');
@@ -45,7 +45,7 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
       results.push({ start: match.index, end: regex.lastIndex });
     }
     return results;
-  }, []);
+  }, [wildcardToRegExp]);
 
   const createDownloadSnippets = useCallback((result, query) => {
     const normalizedQuery = normalizeQuery(query);
@@ -58,7 +58,6 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
       positions = positions.concat(partPositions);
     });
 
-    // Sort and merge overlapping positions
     positions.sort((a, b) => a.start - b.start);
     const mergedPositions = positions.reduce((acc, curr) => {
       if (acc.length === 0 || curr.start > acc[acc.length - 1].end) {
@@ -69,13 +68,12 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
       return acc;
     }, []);
 
-    // Create snippets
     return mergedPositions.map(position => {
       const start = Math.max(0, position.start - DOWNLOAD_CONTEXT_SIZE);
       const end = Math.min(normalizedText.length, position.end + DOWNLOAD_CONTEXT_SIZE);
       return normalizedText.slice(start, end);
     });
-  }, [findAllOccurrences]);
+  }, [findAllOccurrences, normalizeQuery]);
 
   const generateCSV = useCallback((data) => {
     const fields = ['text_id', 'page_num', 'vol', 'title_ar', 'snippets'];
@@ -137,7 +135,6 @@ const DownloadButton = ({ allSearchResults, searchQuery }) => {
 
   return (
     <div className="download-container">
-
       <button
         onClick={handleDownload}
         className="download-button"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { fetchPages } from '../services/pageService';
 import { useMetadata } from '../context/metadataContext';
 import LoadingGif from '../utils/LoadingGif';

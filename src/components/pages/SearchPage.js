@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useSearch } from '../context/SearchContext';
 import SearchForm from '../search/SearchForm';
 import Results from '../search/Results';
