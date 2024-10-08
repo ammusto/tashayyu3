@@ -1,14 +1,16 @@
 import API_URL from '../../config/api';
 
 export async function fetchData() {
+  console.log('API URL:', API_URL);
   try {
-    console.log('Fetching from URL:', `${API_URL}/api/metadata`);
-    const response = await fetch(`${API_URL}/api/metadata`);
+    const url = `${API_URL}/api/metadata`;
+    console.log('Fetching from URL:', url);
+    const response = await fetch(url);
     console.log('Response status:', response.status);
-    console.log('Response headers:', response.headers);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
     
     const text = await response.text();
-    console.log('Received text:', text.substring(0, 500));
+    console.log('Received text (first 500 characters):', text.substring(0, 500));
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}, body: ${text.substring(0, 200)}...`);
@@ -22,25 +24,21 @@ export async function fetchData() {
       throw new Error(`Failed to parse JSON: ${text.substring(0, 200)}...`);
     }
     
-    return data.map(item => {
-      const mappedItem = {
-        id: item.text_id,
-        title_lat: item.title_lat,
-        title_ar: item.title_ar,
-        file_name: item.file_name,
-        author_id: item.author_id,
-        author_lat: item.author_lat,
-        author_ar: item.author_ar,
-        date: item.date ? parseInt(item.date, 10) : null,
-        length: item.tok_length ? parseInt(item.tok_length, 10) : null,
-        tags: item.tags,
-        ed_info: item.ed_info,
-      };
-      
-      return mappedItem;
-    });
+    return data.map(item => ({
+      id: item.text_id,
+      title_lat: item.title_lat,
+      title_ar: item.title_ar,
+      file_name: item.file_name,
+      author_id: item.author_id,
+      author_lat: item.author_lat,
+      author_ar: item.author_ar,
+      date: item.date ? parseInt(item.date, 10) : null,
+      length: item.tok_length ? parseInt(item.tok_length, 10) : null,
+      tags: item.tags,
+      ed_info: item.ed_info,
+    }));
   } catch (error) {
     console.error("Error fetching data:", error);
-    return [];
+    throw error;
   }
 }
