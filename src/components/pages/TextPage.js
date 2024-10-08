@@ -2,6 +2,8 @@ import React, { useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMetadata, useText, useAuthor } from '../context/metadataContext';
 import LoadingGif from '../utils/LoadingGif';
+import './Metadata.css'
+
 
 const TextPage = () => {
   const { textId } = useParams();
@@ -86,12 +88,12 @@ const TextPage = () => {
                 )
               ))}
               <tr>
-                <td>Download Text</td>
-                <td><em>Coming Soon</em></td>
-              </tr>
-              <tr>
                 <td>Metadata</td>
                 <td><button className="text-button" onClick={downloadTextAsCSV}>Download as CSV</button></td>
+              </tr>
+              <tr>
+                <td>Download Text</td>
+                <td><em>Coming Soon</em></td>
               </tr>
             </tbody>
           </table>

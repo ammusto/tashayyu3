@@ -1,7 +1,6 @@
 import React from 'react';
 import ResultPreview from './ResultPreview';
 import Pagination from '../utils/Pagination';
-import { Link } from 'react-router-dom';
 
 const Results = React.memo(({ displayedResults, query, currentPage, totalResults, totalPages, itemsPerPage, onPageChange }) => {
   if (!displayedResults || displayedResults.length === 0) {
@@ -36,10 +35,15 @@ const Results = React.memo(({ displayedResults, query, currentPage, totalResults
           {displayedResults.map((result, index) => (
             <tr key={index}>
               <td>
-                <Link to={`/reader/${result.text_id}/${result.vol}/${result.page_num}?highlight=${encodeURIComponent(query)}`}>
+                <a
+                  href={`/reader/${result.text_id}/${result.vol}/${result.page_num}?highlight=${encodeURIComponent(query)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {result.vol}:{result.page_num}
-                </Link>
+                </a>
               </td>
+
               <td>
                 <ResultPreview
                   query={query}
@@ -47,7 +51,12 @@ const Results = React.memo(({ displayedResults, query, currentPage, totalResults
                   matchPositions={result.match_positions}
                 />
               </td>
-              <td>{result.title_ar}</td>
+              <td><a 
+              href={`/text/${result.text_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+
+              >{result.title_ar}</a></td>
             </tr>
           ))}
         </tbody>

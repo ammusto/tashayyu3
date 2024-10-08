@@ -95,6 +95,8 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     />
   ), [metadata?.genreOptions, selectedGenres, setSelectedGenres, handleResetGenres]);
 
+console.log('Local Query:', localQuery)
+
   return (
     <div className="search-form-container">
       <form onSubmit={handleSubmit}>
@@ -137,8 +139,8 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
           <button
             type="submit"
             className='search-button'
-            disabled={!localQuery.trim() && selectedTexts.length === 0}
-          >
+            disabled={localQuery.trim() === ''}
+            >
             Search
           </button>
           <button

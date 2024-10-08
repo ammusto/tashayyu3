@@ -7,7 +7,7 @@ import { SearchProvider } from './components/context/SearchContext';
 
 const HomePage = lazy(() => import('./components/pages/HomePage'));
 const AboutPage = lazy(() => import('./components/pages/About'));
-const MetadataBrowser = lazy(() => import('./components/MetadataBrowser'));
+const MetadataBrowser = lazy(() => import('./components/pages/MetadataBrowser'));
 const TextPage = lazy(() => import('./components/pages/TextPage'));
 const AuthorPage = lazy(() => import('./components/pages/AuthorPage'));
 const SearchPage = lazy(() => import('./components/pages/SearchPage'));
