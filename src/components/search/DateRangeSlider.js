@@ -5,7 +5,7 @@ import debounce from 'lodash/debounce';
 import './DateRangeSlider.css';
 
 const DateRangeSlider = () => {
-  const { dateRange, setDateRange, metadata } = useSearch();
+  const { setDateRange, metadata } = useSearch();
   const [localRange, setLocalRange] = useState([0, 2000]); // Default range
   const [minInput, setMinInput] = useState('');
   const [maxInput, setMaxInput] = useState('');
@@ -28,13 +28,15 @@ const DateRangeSlider = () => {
     }
   }, [metadata, setDateRange]);
 
-  const debouncedSetDateRange = useCallback(
-    debounce((range) => {
+  // Debounce with memoization
+  const debouncedSetDateRange = useMemo(
+    () => debounce((range) => {
       setDateRange(range);
     }, 300),
     [setDateRange]
   );
 
+  // Ensure correct dependencies
   const handleChange = useCallback((newRange) => {
     setLocalRange(newRange);
     setMinInput(newRange[0].toString());

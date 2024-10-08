@@ -138,7 +138,7 @@ export const SearchProvider = ({ children }) => {
       setHighlightQuery(query);
       handleSearch(query, textsToSearch, page);
     }
-  }, [metadata, setSelectedTexts, handleSearch]);
+  }, [metadata, handleSearch]);
 
   const value = useMemo(() => ({
     filteredTexts: memoizedFilteredTexts,

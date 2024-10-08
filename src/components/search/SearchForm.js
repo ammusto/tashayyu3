@@ -44,7 +44,7 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     setSearchQuery('');
     resetSearch();
     onResetSearch();
-  }, [resetSearch, onResetSearch]);
+  }, [resetSearch, onResetSearch, setSearchQuery]);
 
   const handleResetGenres = useCallback(() => {
     setSelectedGenres([]);
@@ -68,7 +68,7 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
       }
       isInitialMount.current = false;
     }
-  }, [initialQuery, initialTextIds, setSearchQuery, setSelectedTexts]);
+  }, [initialQuery, initialTextIds, setSearchQuery, setSelectedTexts, onToggle]);
 
   useEffect(() => {
     if (!isInitialMount.current && searchQuery !== localQuery) {
