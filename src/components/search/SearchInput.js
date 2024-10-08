@@ -9,8 +9,7 @@ const CustomAlert = ({ message }) => (
     </div>
 );
 
-const SearchInput = ({ value, onChange, placeholder, onProcliticsChange }) => {
-    const [localValue, setLocalValue] = useState(value);
+const SearchInput = React.memo(({ value, onChange, placeholder, onProcliticsChange }) => {
     const [error, setError] = useState('');
     const [checkA, setCheckA] = useState(true);
     const [checkB, setCheckB] = useState(true);
@@ -52,21 +51,16 @@ const SearchInput = ({ value, onChange, placeholder, onProcliticsChange }) => {
           return;
         }
       
-        setLocalValue(newValue);
         onChange(newValue);
-      };
+    };
 
     const handleCheckChange = (check) => {
         if (check === 'A') {
-            setCheckA(!checkA);
+            setCheckA(prev => !prev);
         } else {
-            setCheckB(!checkB);
+            setCheckB(prev => !prev);
         }
     };
-
-    useEffect(() => {
-        setLocalValue(value);
-    }, [value]);
 
     useEffect(() => {
         onProcliticsChange(checkA, checkB);
@@ -102,15 +96,14 @@ const SearchInput = ({ value, onChange, placeholder, onProcliticsChange }) => {
                 <input
                     className="search-form-input"
                     type="text"
-                    value={localValue}
+                    value={value}
                     onChange={handleInputChange}
                     placeholder={placeholder}
                 />
-
                 {error && <CustomAlert message={error} />}
             </div>
         </>
     );
-};
+});
 
 export default SearchInput;

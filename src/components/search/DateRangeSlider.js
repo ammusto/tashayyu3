@@ -6,71 +6,66 @@ import './DateRangeSlider.css';
 
 const DateRangeSlider = () => {
   const { dateRange, setDateRange, metadata } = useSearch();
-  const [localRange, setLocalRange] = useState(dateRange);
-  const [minInput, setMinInput] = useState(dateRange[0]);
-  const [maxInput, setMaxInput] = useState(dateRange[1]);
+  const [localRange, setLocalRange] = useState([0, 2000]); // Default range
+  const [minInput, setMinInput] = useState('');
+  const [maxInput, setMaxInput] = useState('');
 
   const sliderProps = useMemo(() => ({
-    min: metadata?.dateRange?.min || 0,
-    max: metadata?.dateRange?.max || 2000,
+    min: metadata?.dateRange?.min ?? 0,
+    max: metadata?.dateRange?.max ?? 2000,
   }), [metadata]);
 
   useEffect(() => {
     if (metadata?.dateRange) {
-      const newRange = [metadata.dateRange.min, metadata.dateRange.max];
+      const newRange = [
+        metadata.dateRange.min ?? 0,
+        metadata.dateRange.max ?? 2000
+      ];
       setLocalRange(newRange);
-      setMinInput(newRange[0]);
-      setMaxInput(newRange[1]);
+      setMinInput(newRange[0].toString());
+      setMaxInput(newRange[1].toString());
       setDateRange(newRange);
     }
   }, [metadata, setDateRange]);
 
   const debouncedSetDateRange = useCallback(
-    (newRange) => {
-      debounce((range) => {
-        setDateRange(range);
-      }, 300)(newRange);
-    },
+    debounce((range) => {
+      setDateRange(range);
+    }, 300),
     [setDateRange]
   );
 
   const handleChange = useCallback((newRange) => {
     setLocalRange(newRange);
-    setMinInput(newRange[0]);
-    setMaxInput(newRange[1]);
+    setMinInput(newRange[0].toString());
+    setMaxInput(newRange[1].toString());
     debouncedSetDateRange(newRange);
   }, [debouncedSetDateRange]);
 
   const handleInputChange = useCallback((e) => {
     const { value, name } = e.target;
-    const parsedValue = parseFloat(value);
-
-    if (!isNaN(parsedValue)) {
-      if (name === "minInput") {
-        setMinInput(parsedValue);
-      } else {
-        setMaxInput(parsedValue);
-      }
+    if (name === "minInput") {
+      setMinInput(value);
+    } else {
+      setMaxInput(value);
     }
   }, []);
 
   const handleBlur = useCallback(() => {
-    let newMin = parseFloat(minInput);
-    let newMax = parseFloat(maxInput);
+    let newMin = parseInt(minInput, 10);
+    let newMax = parseInt(maxInput, 10);
 
-    if (isNaN(newMin) || newMin < sliderProps.min) {
-      newMin = sliderProps.min;
-    }
-    if (isNaN(newMax) || newMax > sliderProps.max) {
-      newMax = sliderProps.max;
-    }
+    newMin = isNaN(newMin) ? sliderProps.min : Math.max(newMin, sliderProps.min);
+    newMax = isNaN(newMax) ? sliderProps.max : Math.min(newMax, sliderProps.max);
 
     if (newMax < newMin) {
-      newMax = newMin + 50;
+      newMax = newMin;
     }
 
     const newRange = [newMin, newMax];
     setLocalRange(newRange);
+    setMinInput(newMin.toString());
+    setMaxInput(newMax.toString());
     debouncedSetDateRange(newRange);
   }, [minInput, maxInput, debouncedSetDateRange, sliderProps.min, sliderProps.max]);
 
@@ -85,9 +80,10 @@ const DateRangeSlider = () => {
         trackClassName="track"
         value={localRange}
         onChange={handleChange}
+        min={sliderProps.min}
+        max={sliderProps.max}
         pearling
         minDistance={10}
-        {...sliderProps}
       />
       <div className="input-container">
         <input

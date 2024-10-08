@@ -26,7 +26,8 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
 
   const handleQueryChange = useCallback((value) => {
     setLocalQuery(value);
-  }, []);
+    setSearchQuery(value);
+  }, [setSearchQuery]);
 
   const handleProcliticsChangeLocal = useCallback((checkA, checkB) => {
     handleProcliticsChange(checkA, checkB);
@@ -40,6 +41,7 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
 
   const handleReset = useCallback(() => {
     setLocalQuery('');
+    setSearchQuery('');
     resetSearch();
     onResetSearch();
   }, [resetSearch, onResetSearch]);
@@ -53,12 +55,13 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     onToggle();
   }, [onToggle]);
 
-  // Effect to handle initial query and text IDs
   useEffect(() => {
     if (isInitialMount.current) {
       if (initialQuery !== '') {
         setLocalQuery(initialQuery);
         setSearchQuery(initialQuery);
+        onToggle();
+
       }
       if (initialTextIds.length > 0) {
         setSelectedTexts(initialTextIds);
@@ -67,7 +70,6 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     }
   }, [initialQuery, initialTextIds, setSearchQuery, setSelectedTexts]);
 
-  // Effect to keep localQuery in sync with searchQuery only when searchQuery changes
   useEffect(() => {
     if (!isInitialMount.current && searchQuery !== localQuery) {
       setLocalQuery(searchQuery);

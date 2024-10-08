@@ -1,17 +1,10 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import ResultPreview from './ResultPreview';
 import Pagination from '../utils/Pagination';
 import { Link } from 'react-router-dom';
 
 const Results = React.memo(({ displayedResults, query, currentPage, totalResults, totalPages, itemsPerPage, onPageChange }) => {
-  const resultsToShow = useMemo(() => {
-    if (!Array.isArray(displayedResults) || displayedResults.length === 0) {
-      return [];
-    }
-    return displayedResults;
-  }, [displayedResults]);
-
-  if (resultsToShow.length === 0) {
+  if (!displayedResults || displayedResults.length === 0) {
     return <div className='text-content center'><p>No results found.</p></div>;
   }
 
@@ -40,7 +33,7 @@ const Results = React.memo(({ displayedResults, query, currentPage, totalResults
           </tr>
         </thead>
         <tbody>
-          {resultsToShow.map((result, index) => (
+          {displayedResults.map((result, index) => (
             <tr key={index}>
               <td>
                 <Link to={`/reader/${result.text_id}/${result.vol}/${result.page_num}?highlight=${encodeURIComponent(query)}`}>

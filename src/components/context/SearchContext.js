@@ -27,6 +27,7 @@ export const SearchProvider = ({ children }) => {
   const [totalPages, setTotalPages] = useState(0);
   const [hasSearched, setHasSearched] = useState(false);
   const [isChangingPage, setIsChangingPage] = useState(false);
+  const [highlightQuery, setHighlightQuery] = useState('');
 
   useEffect(() => {
     if (metadata?.dateRange) {
@@ -124,7 +125,20 @@ export const SearchProvider = ({ children }) => {
     setTotalResults(0);
     setCurrentPage(1);
     setHasSearched(false);
+    setHighlightQuery('');
   }, [metadata]);
+
+  const initializeSearchFromParams = useCallback((searchParams) => {
+    const query = searchParams.get('query') || '';
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const textIds = searchParams.get('text_ids')?.split(',').map(Number) || [];
+
+    if (query || textIds.length > 0) {
+      const textsToSearch = textIds.length > 0 ? textIds : (metadata?.texts || []).map(text => text.id);
+      setHighlightQuery(query);
+      handleSearch(query, textsToSearch, page);
+    }
+  }, [metadata, setSelectedTexts, handleSearch]);
 
   const value = useMemo(() => ({
     filteredTexts: memoizedFilteredTexts,
@@ -158,13 +172,16 @@ export const SearchProvider = ({ children }) => {
     isChangingPage,
     handleProcliticsChange,
     checkA,
-    checkB
+    checkB,
+    highlightQuery,
+    setHighlightQuery,
+    initializeSearchFromParams
   }), [
     memoizedFilteredTexts, searchQuery, originalQuery, selectedTexts, selectedTextDetails,
     selectedGenres, textFilter, allSearchResults, displayedResults, isSearching, currentPage,
     dateRange, totalResults, totalPages, hasSearched, handleSearch,
     debouncedHandlePageChange, resetSearch, clearSelectedTexts, metadata, isMetadataLoading, 
-    isChangingPage, handleProcliticsChange, checkA, checkB
+    isChangingPage, handleProcliticsChange, checkA, checkB, highlightQuery, initializeSearchFromParams
   ]);
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;

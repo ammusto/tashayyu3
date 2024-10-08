@@ -1,16 +1,11 @@
 import API_URL from '../../config/api';
 
 export async function fetchData() {
-  console.log('API URL:', API_URL);
   try {
     const url = `${API_URL}/api/metadata`;
-    console.log('Fetching from URL:', url);
     const response = await fetch(url);
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
     
     const text = await response.text();
-    console.log('Received text (first 500 characters):', text.substring(0, 500));
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}, body: ${text.substring(0, 200)}...`);

@@ -11,7 +11,6 @@ const ITEMS_PER_PAGE = 20;
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [highlightQuery, setHighlightQuery] = useState('');
   const [isSearchFormOpen, setIsSearchFormOpen] = useState(true);
 
   const {
@@ -22,14 +21,15 @@ const SearchPage = () => {
     handleSearch,
     handlePageChange,
     searchQuery,
-    selectedTexts,
-    setSelectedTexts,
     currentPage,
     totalPages,
     resetSearch,
     isChangingPage,
     metadata,
     allSearchResults,
+    highlightQuery,
+    setHighlightQuery,
+    initializeSearchFromParams,
   } = useSearch();
 
   const updateSearchParams = useCallback((query, texts, page) => {
@@ -44,16 +44,10 @@ const SearchPage = () => {
 
   const handleSearchSubmit = useCallback((query, texts, page) => {
     setHighlightQuery(query);
-    const textsToSearch = texts.length > 0 ? texts : (metadata?.texts || []).map(text => text.id);
-    handleSearch(query, textsToSearch, page);
-    updateSearchParams(query, textsToSearch, page);
+    handleSearch(query, texts, page);
+    updateSearchParams(query, texts, page);
     setIsSearchFormOpen(false);
-  }, [handleSearch, metadata, updateSearchParams]);
-
-  const handlePageChangeWithoutSearch = useCallback((newPage) => {
-    handlePageChange(newPage);
-    updateSearchParams(searchQuery, selectedTexts, newPage);
-  }, [handlePageChange, searchQuery, selectedTexts, updateSearchParams]);
+  }, [handleSearch, updateSearchParams, setHighlightQuery]);
 
   const handleResetSearch = useCallback(() => {
     resetSearch();
@@ -66,16 +60,8 @@ const SearchPage = () => {
   }, []);
 
   useEffect(() => {
-    const query = searchParams.get('query') || '';
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const textIds = searchParams.get('text_ids')?.split(',').map(Number) || [];
-
-    if (query || textIds.length > 0) {
-      const textsToSearch = textIds.length > 0 ? textIds : (metadata?.texts || []).map(text => text.id);
-      setSelectedTexts(textsToSearch);
-      handleSearchSubmit(query, textsToSearch, page);
-    }
-  }, [searchParams, handleSearchSubmit, setSelectedTexts, metadata]);
+    initializeSearchFromParams(searchParams);
+  }, [searchParams, initializeSearchFromParams]);
 
   const memoizedSearchForm = useMemo(() => (
     <SearchForm
@@ -98,10 +84,10 @@ const SearchPage = () => {
         totalResults={totalResults}
         totalPages={totalPages}
         itemsPerPage={ITEMS_PER_PAGE}
-        onPageChange={handlePageChangeWithoutSearch}
+        onPageChange={handlePageChange}
       />
     )
-  ), [isSearching, isChangingPage, hasSearched, displayedResults, highlightQuery, currentPage, totalResults, totalPages, handlePageChangeWithoutSearch]);
+  ), [isSearching, isChangingPage, hasSearched, displayedResults, highlightQuery, currentPage, totalResults, totalPages, handlePageChange]);
 
   return (
     <div className='container'>
@@ -109,7 +95,7 @@ const SearchPage = () => {
         {memoizedSearchForm}
         {(isSearching || isChangingPage) && <div className='text-content center'><p><LoadingGif divs={false}/></p></div>}
         {memoizedResults}
-        {displayedResults.length > 0 && (
+        {displayedResults.length > 0 && isSearching === false && (
           <DownloadButton allSearchResults={allSearchResults} searchQuery={searchQuery} />
         )}
       </div>
