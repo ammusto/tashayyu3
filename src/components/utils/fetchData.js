@@ -2,8 +2,13 @@ import API_URL from '../../config/api';
 
 export async function fetchData() {
   try {
+    console.log('Fetching from URL:', `${API_URL}/api/metadata`);
     const response = await fetch(`${API_URL}/api/metadata`);
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+    
     const text = await response.text();
+    console.log('Received text:', text.substring(0, 500));
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}, body: ${text.substring(0, 200)}...`);
@@ -29,7 +34,7 @@ export async function fetchData() {
         date: item.date ? parseInt(item.date, 10) : null,
         length: item.tok_length ? parseInt(item.tok_length, 10) : null,
         tags: item.tags,
-        ed_info: item.ed_info, // Include ed_info
+        ed_info: item.ed_info,
       };
       
       return mappedItem;
