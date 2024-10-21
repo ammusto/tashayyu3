@@ -1,13 +1,18 @@
 import API_URL from '../../config/api';
 
+const USERNAME = 'api-nusus';
+const PASSWORD = '^6TuN3VTf%j8Af1@';
 
 export const performSearch = async (sqlQuery, texts, page, resultsPerPage) => {
   try {
+    const headers = new Headers({
+      'Content-Type': 'application/json',
+      'Authorization': 'Basic ' + btoa(USERNAME + ":" + PASSWORD)
+    });
+
     const response = await fetch(`${API_URL}/api/search`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: headers,
       body: JSON.stringify({
         sqlQuery,
         texts,

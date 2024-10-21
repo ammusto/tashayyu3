@@ -45,12 +45,12 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
       ? safeSelectedOptions.filter(item => item !== optionValue)
       : [...safeSelectedOptions, optionValue];
     onSelectionChange(newSelectedOptions);
-    setSearchTerm('');  // Clear the search term after selection
+    setSearchTerm('');
   }, [safeSelectedOptions, onSelectionChange]);
 
   const handleUnselectAll = useCallback((event) => {
-    event.stopPropagation();  // Prevent event from bubbling up
-    event.preventDefault();   // Prevent default button behavior
+    event.stopPropagation();
+    event.preventDefault();
     onReset();
     setSearchTerm('');
   }, [onReset]);

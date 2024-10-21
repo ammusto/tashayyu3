@@ -27,14 +27,6 @@ const MetadataBrowser = () => {
     })
   );
 
-  const trimTableData = (name, num = 0) => {
-    if (!name) return 'N/A';
-    const parts = name.split('::');
-    if (num < parts.length) {
-      return parts[num].trim();
-    }
-    return name;
-  };
 
   const sortedTexts = [...filteredTexts].sort((a, b) => {
     const valueA = a[sortColumn];
@@ -122,8 +114,8 @@ const MetadataBrowser = () => {
             <tr key={text.id}>
               <td>
                 <ul>
-                  <li><Link to={`/text/${text.id}`}>{trimTableData(text.title_ar, 0) || 'N/A'}</Link></li>
-                  <li><Link to={`/text/${text.id}`}>{trimTableData(text.title_lat, 0) || 'N/A'}</Link></li>
+                  <li><Link to={`/text/${text.id}`}>{text.title_ar || 'N/A'}</Link></li>
+                  <li><Link to={`/text/${text.id}`}>{text.title_lat || 'N/A'}</Link></li>
                 </ul>
               </td>
               <td>
@@ -132,21 +124,21 @@ const MetadataBrowser = () => {
                     <Link 
                       to={`/author/${text.author_id}`} 
                     >
-                      {trimTableData(text.author_ar, 0) || 'N/A'}
+                      {text.author_ar || 'N/A'}
                     </Link>
                   </li>
                   <li>
                     <Link 
                       to={`/author/${text.author_id}`} 
                     >
-                      {trimTableData(text.author_lat, 0) || 'N/A'}
+                      {text.author_lat || 'N/A'}
                     </Link>
                   </li>
                 </ul>
               </td>
               <td>{text.date || 'N/A'}</td>
               <td>{text.length || 'N/A'}</td>
-              <td>{trimTableData(text.tags, 0) || 'N/A'}</td>
+              <td>{text.tags || 'N/A'}</td>
               <td>
                 <a href={text.download} target="_blank" rel="noopener noreferrer">💾</a>
               </td>

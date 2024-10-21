@@ -10,10 +10,10 @@ const AuthorPage = () => {
   const authorTexts = useAuthorTexts(authorId);
 
   const labelMap = [
-    { key: 'author_lat', label: 'Latinized Name' },
-    { key: 'label', label: 'Arabic Name' },
+    { key: 'au_tl', label: 'Latinized Name' },
+    { key: 'au_ar', label: 'Arabic Name' },
     { key: 'date', label: 'Death Year' },
-    // Add any other fields you want to display
+    { key: 'bio', label: 'Biography' },
   ];
 
   if (isLoading) return <LoadingGif />;
@@ -26,8 +26,8 @@ const AuthorPage = () => {
         <div className='text-content'>
           <h2>
             <ul>
-              <li>{author.author_lat}</li>
-              <li>{author.author_ar}</li>
+              <li>{author.au_tl}</li>
+              <li>{author.au_ar}</li>
             </ul>
           </h2>
           <table className='individual-meta'>
@@ -46,7 +46,7 @@ const AuthorPage = () => {
                   <ul>
                     {authorTexts.map(text => (
                       <li key={text.id}>
-                        <Link to={`/text/${text.id}`}>{text.title_lat || text.title_ar}</Link>
+                        <Link to={`/text/${text.id}`}>{text.title_tl || text.title_ar}</Link>
                       </li>
                     ))}
                   </ul>

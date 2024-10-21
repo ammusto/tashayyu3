@@ -4,7 +4,6 @@ import { useMetadata, useText, useAuthor } from '../context/metadataContext';
 import LoadingGif from '../utils/LoadingGif';
 import './Metadata.css'
 
-
 const TextPage = () => {
   const { textId } = useParams();
   const { isLoading, error } = useMetadata();
@@ -12,12 +11,13 @@ const TextPage = () => {
   const author = useAuthor(text?.author_id);
 
   const labelMap = useMemo(() => [
-    { key: 'text_id', label: 'Text ID' },
+    { key: 'id', label: 'Text ID' },
     { key: 'title_ar', label: 'Arabic Title' },
     { key: 'title_lat', label: 'Latinized Title' },
-    { key: 'ed_info', label: 'Edition Info' },
-    { key: 'tok_length', label: 'Token Length' },
+    { key: 'ed_info', label: 'Contributor' },
+    { key: 'length', label: 'Word Length' },
     { key: 'tags', label: 'Genre' },
+    { key: 'file_name', label: 'File Link' },
   ], []);
 
   const downloadTextAsCSV = useCallback(() => {
@@ -26,7 +26,7 @@ const TextPage = () => {
     const BOM = '\uFEFF';
     const entries = Object.entries(text).filter(([key]) => labelMap.some(item => item.key === key));
     const authorInfo = [
-      ['author_ar', author.label],
+      ['author_ar', author.author_ar],
       ['author_lat', author.author_lat],
       ['author_death', author.date]
     ];
@@ -45,7 +45,7 @@ const TextPage = () => {
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
-      link.setAttribute('download', `nusus${text.text_id}_${text.title_lat}_metadata.csv`);
+      link.setAttribute('download', `nusus${text.id}_${text.title_lat}_metadata.csv`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -74,8 +74,8 @@ const TextPage = () => {
                 <td>Author</td>
                 <td>
                   <ul>
-                    <li><Link to={`/author/${author.value}`}>{author.author_lat}</Link> (d. {author.date})</li>
-                    <li><Link to={`/author/${author.value}`}>{author.label}</Link></li>
+                    <li><Link to={`/author/${text.author_id}`}>{text.author_lat}</Link> (d. {text.date})</li>
+                    <li><Link to={`/author/${text.author_id}`}>{text.author_ar}</Link></li>
                   </ul>
                 </td>
               </tr>
@@ -83,7 +83,7 @@ const TextPage = () => {
                 text[key] !== undefined && (
                   <tr key={key}>
                     <td>{label}</td>
-                    <td>{text[key]}</td>
+                    <td>{Array.isArray(text[key]) ? text[key].join(', ') : text[key]}</td>
                   </tr>
                 )
               ))}

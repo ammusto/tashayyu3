@@ -1,43 +1,47 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { useMetadata } from './metadataContext';
+import debounce from 'lodash/debounce';
+import { loadMetadata } from '../utils/metadataLoader';
 import { performSearch } from '../services/searchService';
 import { parseAdvancedQuery, buildSQLQuery } from '../utils/queryParser';
-import debounce from 'lodash/debounce';
 
 const SearchContext = createContext();
 
-export const useSearch = () => useContext(SearchContext);
-
 export const SearchProvider = ({ children }) => {
-  const [checkA, setCheckA] = useState(true);
-  const [checkB, setCheckB] = useState(true);
-  const { metadata, isLoading: isMetadataLoading } = useMetadata();
+  const [metadata, setMetadata] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [originalQuery, setOriginalQuery] = useState('');
   const [selectedTexts, setSelectedTexts] = useState([]);
-  const [selectedTextDetails, setSelectedTextDetails] = useState([]);
-  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [originalQuery, setOriginalQuery] = useState('');
   const [textFilter, setTextFilter] = useState('');
-  const [allSearchResults, setAllSearchResults] = useState([]);
+  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [dateRange, setDateRange] = useState({ min: 0, max: 2000, current: [0, 2000] });
   const [displayedResults, setDisplayedResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [dateRange, setDateRange] = useState(() => metadata?.dateRange || [0, 0]);
   const [totalResults, setTotalResults] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [isChangingPage, setIsChangingPage] = useState(false);
+  const [allSearchResults, setAllSearchResults] = useState([]);
   const [highlightQuery, setHighlightQuery] = useState('');
+  const [checkA, setCheckA] = useState(true);
+  const [checkB, setCheckB] = useState(true);
 
   useEffect(() => {
-    if (metadata?.dateRange) {
-      setDateRange([metadata.dateRange.min, metadata.dateRange.max]);
-    }
-  }, [metadata]);
+    const initMetadata = async () => {
+      try {
+        const data = await loadMetadata();
+        setMetadata(data);
+        setDateRange({
+          min: data.dateRange.min,
+          max: data.dateRange.max,
+          current: [data.dateRange.min, data.dateRange.max]
+        });
+      } catch (error) {
+        console.error('Error initializing metadata:', error);
+            }
+    };
 
-  const clearSelectedTexts = useCallback(() => {
-    setSelectedTexts([]);
-    setSelectedTextDetails([]);
+    initMetadata();
   }, []);
 
   const memoizedFilteredTexts = useMemo(() => {
@@ -116,73 +120,71 @@ export const SearchProvider = ({ children }) => {
   const resetSearch = useCallback(() => {
     setSearchQuery('');
     setSelectedTexts([]);
-    setSelectedTextDetails([]);
-    setSelectedGenres([]);
     setTextFilter('');
-    setDateRange([metadata?.dateRange?.min || 0, metadata?.dateRange?.max || 0]);
-    setAllSearchResults([]);
+    setSelectedGenres([]);
+    setDateRange(prevState => ({
+      ...prevState,
+      current: [prevState.min, prevState.max]
+    }));
     setDisplayedResults([]);
     setTotalResults(0);
     setCurrentPage(1);
+    setTotalPages(1);
     setHasSearched(false);
+    setAllSearchResults([]);
     setHighlightQuery('');
-  }, [metadata]);
+  }, []);
 
   const initializeSearchFromParams = useCallback((searchParams) => {
-    const query = searchParams.get('query') || '';
-    const page = parseInt(searchParams.get('page') || '1', 10);
+    const query = searchParams.get('query');
+    const page = parseInt(searchParams.get('page')) || 1;
     const textIds = searchParams.get('text_ids')?.split(',').map(Number) || [];
 
-    if (query || textIds.length > 0) {
-      const textsToSearch = textIds.length > 0 ? textIds : (metadata?.texts || []).map(text => text.id);
+    if (query) {
+      setSearchQuery(query);
       setHighlightQuery(query);
-      handleSearch(query, textsToSearch, page);
+      handleSearch(query, textIds, page);
     }
-  }, [metadata, handleSearch]);
+  }, [handleSearch]);
 
-  const value = useMemo(() => ({
-    filteredTexts: memoizedFilteredTexts,
+  const value = {
+    metadata,
     searchQuery,
     setSearchQuery,
-    originalQuery,
     selectedTexts,
     setSelectedTexts,
-    selectedTextDetails,
-    setSelectedTextDetails,
-    selectedGenres,
-    setSelectedGenres,
     textFilter,
     setTextFilter,
-    allSearchResults,
-    displayedResults,
-    isSearching,
-    currentPage,
-    setCurrentPage,
+    selectedGenres,
+    setSelectedGenres,
     dateRange,
     setDateRange,
+    displayedResults,
     totalResults,
+    currentPage,
     totalPages,
+    isSearching,
     hasSearched,
-    handleSearch,
-    handlePageChange: debouncedHandlePageChange,
-    resetSearch,
-    clearSelectedTexts,
-    metadata,
-    isMetadataLoading,
     isChangingPage,
-    handleProcliticsChange,
-    checkA,
-    checkB,
+    allSearchResults,
     highlightQuery,
     setHighlightQuery,
-    initializeSearchFromParams
-  }), [
-    memoizedFilteredTexts, searchQuery, originalQuery, selectedTexts, selectedTextDetails,
-    selectedGenres, textFilter, allSearchResults, displayedResults, isSearching, currentPage,
-    dateRange, totalResults, totalPages, hasSearched, handleSearch,
-    debouncedHandlePageChange, resetSearch, clearSelectedTexts, metadata, isMetadataLoading, 
-    isChangingPage, handleProcliticsChange, checkA, checkB, highlightQuery, initializeSearchFromParams
-  ]);
+    checkA,
+    checkB,
+    handleSearch,
+    handlePageChange,
+    handleProcliticsChange,
+    resetSearch,
+    initializeSearchFromParams,
+  };
 
   return <SearchContext.Provider value={value}>{children}</SearchContext.Provider>;
+};
+
+export const useSearch = () => {
+  const context = useContext(SearchContext);
+  if (!context) {
+    throw new Error('useSearch must be used within a SearchProvider');
+  }
+  return context;
 };

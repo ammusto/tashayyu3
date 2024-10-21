@@ -1,10 +1,9 @@
-import { fetchData } from './fetchData';
+import { loadMetadataFromCSV } from './csvLoader';
 
 export const loadMetadata = async () => {
   try {
-    const textsData = await fetchData();
+    const textsData = await loadMetadataFromCSV();
 
-    // Generate unique author options
     const authorMap = new Map();
     textsData.forEach(text => {
       if (!authorMap.has(text.author_ar)) {
@@ -19,7 +18,7 @@ export const loadMetadata = async () => {
     const authorOptions = Array.from(authorMap.values());
 
     // Generate unique genre options
-    const genreSet = new Set(textsData.filter(text => text && text.tags).map(text => text.tags));
+    const genreSet = new Set(textsData.flatMap(text => text.tags));
     const genreOptions = Array.from(genreSet).map(genre => ({ value: genre, label: genre }));
 
     // Calculate date range

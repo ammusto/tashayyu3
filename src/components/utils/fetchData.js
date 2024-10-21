@@ -1,9 +1,15 @@
 import API_URL from '../../config/api';
 
+const USERNAME = 'api-nusus';
+const PASSWORD = '^6TuN3VTf%j8Af1@';
+
 export async function fetchData() {
   try {
     const url = `${API_URL}/api/metadata`;
-    const response = await fetch(url);
+    const headers = new Headers();
+    headers.append('Authorization', 'Basic ' + btoa(USERNAME + ":" + PASSWORD));
+    
+    const response = await fetch(url, { headers });
     
     const text = await response.text();
     
