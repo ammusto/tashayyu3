@@ -1,7 +1,7 @@
-import API_URL from '../../config/api';
+import { API_URL, API_USER, API_PASS } from '../../config/api';
 
-const USERNAME = 'api-nusus';
-const PASSWORD = '^6TuN3VTf%j8Af1@';
+USERNAME = API_USER
+USERNAME = API_PASS
 
 export const performSearch = async (sqlQuery, texts, page, resultsPerPage) => {
   try {

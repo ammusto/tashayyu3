@@ -1,18 +1,21 @@
 import Papa from 'papaparse';
 
-const loadCSV = async (file) => {
+export const loadCSV = (url) => {
   return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      header: true,
+    Papa.parse(url, {
       download: true,
+      header: true,
+      skipEmptyLines: 'greedy',
+      transformHeader: (header) => header.trim(),
       complete: (results) => {
         if (results.errors.length > 0) {
-          console.warn(`CSV parsing completed with errors for ${file}:`, results.errors);
+          console.warn(`CSV parsing completed with ${results.errors.length} errors for ${url}:`, results.errors);
         }
-        resolve(results.data);
+        const validData = results.data.filter(row => Object.values(row).every(value => value !== ""));
+        resolve(validData);
       },
       error: (error) => {
-        console.error(`Error parsing CSV (${file}):`, error);
+        console.error(`Error parsing CSV from ${url}:`, error);
         reject(error);
       }
     });

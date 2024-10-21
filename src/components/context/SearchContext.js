@@ -10,6 +10,7 @@ export const SearchProvider = ({ children }) => {
   const [metadata, setMetadata] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTexts, setSelectedTexts] = useState([]);
+  const [selectedTextDetails, setSelectedTextDetails] = useState([]);
   const [originalQuery, setOriginalQuery] = useState('');
   const [textFilter, setTextFilter] = useState('');
   const [selectedGenres, setSelectedGenres] = useState([]);
@@ -38,29 +39,31 @@ export const SearchProvider = ({ children }) => {
         });
       } catch (error) {
         console.error('Error initializing metadata:', error);
-            }
+      }
     };
 
     initMetadata();
   }, []);
 
-  const memoizedFilteredTexts = useMemo(() => {
+  const filteredTexts = useMemo(() => {
     if (!metadata?.texts) return [];
 
     const genreSet = new Set(selectedGenres);
     const lowerFilter = textFilter.toLowerCase();
+    const [minDate, maxDate] = dateRange.current || [dateRange.min, dateRange.max];
 
     return metadata.texts.filter(text => {
       const textTags = Array.isArray(text.tags) ? text.tags :
         typeof text.tags === 'string' ? text.tags.split(',').map(t => t.trim()) :
-          text.tags ? [text.tags] : [];
+        text.tags ? [text.tags] : [];
 
       if (selectedGenres.length > 0 && !textTags.some(tag => genreSet.has(tag))) return false;
 
-      if (textFilter && !text.title_ar.toLowerCase().includes(lowerFilter) && !text.author_ar.toLowerCase().includes(lowerFilter)) return false;
+      if (textFilter && !text.title_ar.toLowerCase().includes(lowerFilter) && 
+          !text.author_ar.toLowerCase().includes(lowerFilter)) return false;
 
       const deathYear = parseInt(text.date);
-      if (isNaN(deathYear) || deathYear < dateRange[0] || deathYear > dateRange[1]) return false;
+      if (!isNaN(deathYear) && (deathYear < minDate || deathYear > maxDate)) return false;
 
       return true;
     });
@@ -81,7 +84,7 @@ export const SearchProvider = ({ children }) => {
     setOriginalQuery(trimmedQuery);
     setHasSearched(true);
     try {
-      let textsToSearch = searchTexts.length > 0 ? searchTexts : memoizedFilteredTexts.map(text => text.id);
+      let textsToSearch = searchTexts.length > 0 ? searchTexts : filteredTexts.map(text => text.id);
       const sqlQuery = buildSQLQuery(parsedQuery, checkA, checkB);
 
       const results = await performSearch(sqlQuery, textsToSearch);
@@ -102,7 +105,7 @@ export const SearchProvider = ({ children }) => {
     } finally {
       setIsSearching(false);
     }
-  }, [memoizedFilteredTexts, checkA, checkB]);
+  }, [filteredTexts, checkA, checkB]);
 
   const handlePageChange = useCallback((newPage) => {
     setIsChangingPage(true);
@@ -120,6 +123,7 @@ export const SearchProvider = ({ children }) => {
   const resetSearch = useCallback(() => {
     setSearchQuery('');
     setSelectedTexts([]);
+    setSelectedTextDetails([]);
     setTextFilter('');
     setSelectedGenres([]);
     setDateRange(prevState => ({
@@ -153,6 +157,8 @@ export const SearchProvider = ({ children }) => {
     setSearchQuery,
     selectedTexts,
     setSelectedTexts,
+    selectedTextDetails,
+    setSelectedTextDetails,
     textFilter,
     setTextFilter,
     selectedGenres,
@@ -171,8 +177,10 @@ export const SearchProvider = ({ children }) => {
     setHighlightQuery,
     checkA,
     checkB,
+    filteredTexts,
     handleSearch,
     handlePageChange,
+    debouncedHandlePageChange,
     handleProcliticsChange,
     resetSearch,
     initializeSearchFromParams,

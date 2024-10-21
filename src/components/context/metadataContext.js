@@ -32,6 +32,7 @@ export const MetadataProvider = ({ children }) => {
         // Cache the new data
         localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
       } catch (err) {
+        console.error("Error fetching metadata:", err);
         setError(err.message);
       } finally {
         setIsLoading(false);

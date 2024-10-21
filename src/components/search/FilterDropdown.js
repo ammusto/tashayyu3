@@ -11,8 +11,8 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
 
   const sortedOptions = useMemo(() => {
     return [...safeOptions].sort((a, b) => {
-      const labelA = typeof a === 'object' ? a.label : String(a);
-      const labelB = typeof b === 'object' ? b.label : String(b);
+      const labelA = a && typeof a === 'object' && a.label ? String(a.label) : '';
+      const labelB = b && typeof b === 'object' && b.label ? String(b.label) : '';
       return labelA.localeCompare(labelB);
     });
   }, [safeOptions]);
@@ -20,7 +20,7 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
   const filteredOptions = useMemo(() => {
     return sortedOptions.filter(option => {
       if (option == null) return false;
-      const optionLabel = typeof option === 'object' ? option.label : String(option);
+      const optionLabel = option && typeof option === 'object' && option.label ? String(option.label) : String(option);
       return optionLabel.toLowerCase().includes(searchTerm.toLowerCase());
     });
   }, [sortedOptions, searchTerm]);
@@ -56,13 +56,12 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
   }, [onReset]);
 
   const getSelectedLabels = useCallback(() => {
-    return safeSelectedOptions.map(value =>
-      safeOptions.find(option =>
-        (typeof option === 'object' ? option.value : option) === value
-      )
-    ).filter(Boolean).map(option =>
-      typeof option === 'object' ? option.label : String(option)
-    );
+    return safeSelectedOptions.map(value => {
+      const option = safeOptions.find(opt => 
+        (typeof opt === 'object' ? opt.value : opt) === value
+      );
+      return option && typeof option === 'object' ? String(option.label) : String(option);
+    }).filter(Boolean);
   }, [safeOptions, safeSelectedOptions]);
 
   const selectedLabels = useMemo(() => getSelectedLabels(), [getSelectedLabels]);
@@ -83,19 +82,19 @@ const FilterDropdown = ({ label, options, selectedOptions, onSelectionChange, on
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onClick={() => setIsOpen(true)}
-          placeholder={displayText || ""}
+          placeholder={displayText || "Select options"}
           aria-labelledby="filter-dropdown-label"
         />
       </div>
       {isOpen && (
         <div className="dropdown-content" id="filter-dropdown-content">
-          <button id="unselect-all-button"  className='text-button' onClick={handleUnselectAll}>
+          <button id="unselect-all-button" className='text-button' onClick={handleUnselectAll}>
             Unselect All
           </button>
           {filteredOptions.map((option, index) => {
             if (option == null) return null;
             const optionValue = typeof option === 'object' ? option.value : option;
-            const optionLabel = typeof option === 'object' ? option.label : String(option);
+            const optionLabel = typeof option === 'object' ? String(option.label) : String(option);
             const optionId = `option-${optionValue || index}`;
             return (
               <div key={optionId} className="option-container">

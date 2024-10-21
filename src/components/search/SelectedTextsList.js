@@ -9,16 +9,18 @@ const SelectedTextsList = () => {
     setSelectedTextDetails(prev => prev.filter(t => t.id !== id));
   };
 
-  if (selectedTextDetails.length === 0) {
+  if (!selectedTextDetails || selectedTextDetails.length === 0) {
     return <div className="text-filter-list"><div className="center">Searching all texts</div></div>;
   }
 
+  // Remove any potential duplicates
+  const uniqueSelectedTextDetails = selectedTextDetails.filter((text, index, self) =>
+    index === self.findIndex((t) => t.id === text.id)
+  );
+
   return (
     <div className="text-filter-list">
-      {/* <button onClick={clearSelectedTexts} className="clear-selected-button">
-        Remove All Selected Texts
-      </button> */}
-      {selectedTextDetails.map(text => (
+      {uniqueSelectedTextDetails.map(text => (
         <label key={text.id} onClick={() => handleRemoveText(text.id)}>
           <input
             type="checkbox"
@@ -26,12 +28,10 @@ const SelectedTextsList = () => {
             onChange={() => handleRemoveText(text.id)}
             className="text-checkbox"
           />
-          {text.title} ({text.date})
+          {text.title} - {text.author} ({text.date})
         </label>
       ))}
-      
     </div>
-
   );
 };
 
