@@ -5,8 +5,8 @@ import debounce from 'lodash/debounce';
 import './DateRangeSlider.css';
 
 const DateRangeSlider = () => {
-  const { setDateRange, metadata } = useSearch();
-  const [localRange, setLocalRange] = useState([0, 2000]); // Default range
+  const { dateRange, setDateRange, metadata } = useSearch();
+  const [localRange, setLocalRange] = useState([0, 2000]);
   const [minInput, setMinInput] = useState('');
   const [maxInput, setMaxInput] = useState('');
 
@@ -24,19 +24,34 @@ const DateRangeSlider = () => {
       setLocalRange(newRange);
       setMinInput(newRange[0].toString());
       setMaxInput(newRange[1].toString());
-      setDateRange(newRange);
+      setDateRange(prev => ({
+        ...prev,
+        min: metadata.dateRange.min ?? 0,
+        max: metadata.dateRange.max ?? 2000,
+        current: newRange
+      }));
     }
   }, [metadata, setDateRange]);
 
-  // Debounce with memoization
+  // Update local state when dateRange changes from elsewhere
+  useEffect(() => {
+    if (dateRange?.current) {
+      setLocalRange(dateRange.current);
+      setMinInput(dateRange.current[0].toString());
+      setMaxInput(dateRange.current[1].toString());
+    }
+  }, [dateRange]);
+
   const debouncedSetDateRange = useMemo(
-    () => debounce((range) => {
-      setDateRange(range);
+    () => debounce((newRange) => {
+      setDateRange(prev => ({
+        ...prev,
+        current: newRange
+      }));
     }, 300),
     [setDateRange]
   );
 
-  // Ensure correct dependencies
   const handleChange = useCallback((newRange) => {
     setLocalRange(newRange);
     setMinInput(newRange[0].toString());
@@ -68,8 +83,11 @@ const DateRangeSlider = () => {
     setLocalRange(newRange);
     setMinInput(newMin.toString());
     setMaxInput(newMax.toString());
-    debouncedSetDateRange(newRange);
-  }, [minInput, maxInput, debouncedSetDateRange, sliderProps.min, sliderProps.max]);
+    setDateRange(prev => ({
+      ...prev,
+      current: newRange
+    }));
+  }, [minInput, maxInput, sliderProps.min, sliderProps.max, setDateRange]);
 
   return (
     <div className="date-slider-container">

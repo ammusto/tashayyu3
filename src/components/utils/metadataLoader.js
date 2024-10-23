@@ -29,7 +29,6 @@ export const loadMetadata = async () => {
       loadCSV('/authors.csv')
     ]);
 
-    // Process and combine the data
     const processedTexts = textsData.map(text => {
       const author = authorsData.find(author => author.au_id === text.au_id_id);
       return {
@@ -43,7 +42,8 @@ export const loadMetadata = async () => {
         date: author ? parseInt(author.date, 10) : null,
         length: text.word_len ? parseInt(text.word_len, 10) : null,
         tags: [text.genre_id],
-        ed_info: text.contrib,
+        ed_info: text.permbib,
+        contrib: text.contrib,
       };
     });
 
@@ -52,8 +52,8 @@ export const loadMetadata = async () => {
     processedTexts.forEach(text => {
       if (!authorMap.has(text.author_ar)) {
         authorMap.set(text.author_ar, {
-          value: text.author_id,
-          label: text.author_ar,
+          author_id: text.author_id,
+          author_ar: text.author_ar,
           author_lat: text.author_lat,
           date: text.date
         });

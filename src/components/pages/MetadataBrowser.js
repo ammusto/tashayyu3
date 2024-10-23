@@ -103,7 +103,7 @@ const MetadataBrowser = () => {
           <tr>
             <th onClick={() => handleSort('title_ar')}>Title⇅</th>
             <th onClick={() => handleSort('author_ar')}>Author⇅</th>
-            <th onClick={() => handleSort('death')}>Death⇅</th>
+            <th onClick={() => handleSort('date')}>Death⇅</th>
             <th onClick={() => handleSort('length')}>Length⇅</th>
             <th onClick={() => handleSort('tags')}>Tags⇅</th>
             <th>Download</th>

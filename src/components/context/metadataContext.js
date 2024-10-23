@@ -3,8 +3,8 @@ import { loadMetadata } from '../utils/metadataLoader';
 
 const MetadataContext = createContext();
 
-const CACHE_KEY = 'nusu_metadata_cache';
-const CACHE_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const CACHE_KEY = 'nusus_metadata_cache';
+const CACHE_EXPIRY = 24 * 60 * 60 * 10000
 
 export const MetadataProvider = ({ children }) => {
   const [metadata, setMetadata] = useState(null);
@@ -66,7 +66,7 @@ export const useText = (textId) => {
 
 export const useAuthor = (authorId) => {
   const { metadata } = useMetadata();
-  return metadata ? metadata.authors.find(author => author.value === authorId) : null;
+  return metadata ? metadata.authors.find(author => author.author_id === authorId) : null;
 };
 
 export const useAuthorTexts = (authorId) => {

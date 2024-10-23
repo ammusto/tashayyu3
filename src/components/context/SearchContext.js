@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import debounce from 'lodash/debounce';
 import { loadMetadata } from '../utils/metadataLoader';
 import { performSearch } from '../services/searchService';
-import { parseAdvancedQuery, buildSQLQuery } from '../utils/queryParser';
+import { buildOpenSearchQuery } from '../utils/queryParser';
 
 const SearchContext = createContext();
 
@@ -11,7 +11,6 @@ export const SearchProvider = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTexts, setSelectedTexts] = useState([]);
   const [selectedTextDetails, setSelectedTextDetails] = useState([]);
-  const [originalQuery, setOriginalQuery] = useState('');
   const [textFilter, setTextFilter] = useState('');
   const [selectedGenres, setSelectedGenres] = useState([]);
   const [dateRange, setDateRange] = useState({ min: 0, max: 2000, current: [0, 2000] });
@@ -24,8 +23,6 @@ export const SearchProvider = ({ children }) => {
   const [isChangingPage, setIsChangingPage] = useState(false);
   const [allSearchResults, setAllSearchResults] = useState([]);
   const [highlightQuery, setHighlightQuery] = useState('');
-  const [checkA, setCheckA] = useState(true);
-  const [checkB, setCheckB] = useState(true);
 
   useEffect(() => {
     const initMetadata = async () => {
@@ -47,73 +44,77 @@ export const SearchProvider = ({ children }) => {
 
   const filteredTexts = useMemo(() => {
     if (!metadata?.texts) return [];
-
+  
     const genreSet = new Set(selectedGenres);
     const lowerFilter = textFilter.toLowerCase();
     const [minDate, maxDate] = dateRange.current || [dateRange.min, dateRange.max];
-
+  
     return metadata.texts.filter(text => {
       const textTags = Array.isArray(text.tags) ? text.tags :
         typeof text.tags === 'string' ? text.tags.split(',').map(t => t.trim()) :
-        text.tags ? [text.tags] : [];
-
+          text.tags ? [text.tags] : [];
+  
       if (selectedGenres.length > 0 && !textTags.some(tag => genreSet.has(tag))) return false;
-
       if (textFilter && !text.title_ar.toLowerCase().includes(lowerFilter) && 
           !text.author_ar.toLowerCase().includes(lowerFilter)) return false;
-
       const deathYear = parseInt(text.date);
-      if (!isNaN(deathYear) && (deathYear < minDate || deathYear > maxDate)) return false;
-
+      if (isNaN(deathYear) || deathYear < minDate || deathYear > maxDate) return false;
+  
       return true;
     });
   }, [metadata, selectedGenres, textFilter, dateRange]);
 
-  const handleProcliticsChange = useCallback((newCheckA, newCheckB) => {
-    setCheckA(newCheckA);
-    setCheckB(newCheckB);
-  }, []);
-
-  const handleSearch = useCallback(async (query, searchTexts, page = 1) => {
-    const trimmedQuery = query.trim();
-    if (!trimmedQuery) return;
-
-    const parsedQuery = parseAdvancedQuery(trimmedQuery);
-
+  const handleSearch = useCallback(async (searchConfig, searchTexts, page = 1, pageSize = 20) => {
+    if (!searchConfig) return;
+  
     setIsSearching(true);
-    setOriginalQuery(trimmedQuery);
     setHasSearched(true);
+  
     try {
-      let textsToSearch = searchTexts.length > 0 ? searchTexts : filteredTexts.map(text => text.id);
-      const sqlQuery = buildSQLQuery(parsedQuery, checkA, checkB);
-
-      const results = await performSearch(sqlQuery, textsToSearch);
-
-      setAllSearchResults(results.results);
+      const textsToSearch = searchTexts.length > 0 ? searchTexts : filteredTexts.map(text => text.id);
+      
+      const query = buildOpenSearchQuery({
+        ...searchConfig,
+        selectedTexts: textsToSearch
+      }, page, pageSize);
+  
+      const results = await performSearch(query);
+  
+      setDisplayedResults(results.results);
       setTotalResults(results.totalResults);
-      setTotalPages(Math.ceil(results.totalResults / 20));
+      setTotalPages(Math.ceil(results.totalResults / pageSize));
       setCurrentPage(page);
-
-      const startIndex = (page - 1) * 20;
-      setDisplayedResults(results.results.slice(startIndex, startIndex + 20));
+      setAllSearchResults(results.results);
+      setSearchQuery(searchConfig.searchFields[0]?.term || '');
+  
     } catch (error) {
       console.error("Error performing search:", error);
-      setAllSearchResults([]);
       setDisplayedResults([]);
       setTotalResults(0);
       setTotalPages(0);
     } finally {
       setIsSearching(false);
     }
-  }, [filteredTexts, checkA, checkB]);
+  }, [filteredTexts]);
 
-  const handlePageChange = useCallback((newPage) => {
+  const handlePageChange = useCallback(async (newPage, pageSize = 20) => {
     setIsChangingPage(true);
-    const startIndex = (newPage - 1) * 20;
-    setDisplayedResults(allSearchResults.slice(startIndex, startIndex + 20));
-    setCurrentPage(newPage);
-    setIsChangingPage(false);
-  }, [allSearchResults]);
+    try {
+      const query = buildOpenSearchQuery({
+        searchType: 'simple',
+        searchFields: [{ term: searchQuery }],
+        selectedTexts
+      }, newPage, pageSize);
+
+      const results = await performSearch(query);
+      setDisplayedResults(results.results);
+      setCurrentPage(newPage);
+    } catch (error) {
+      console.error("Error changing page:", error);
+    } finally {
+      setIsChangingPage(false);
+    }
+  }, [searchQuery, selectedTexts]);
 
   const debouncedHandlePageChange = useMemo(
     () => debounce(handlePageChange, 300),
@@ -147,7 +148,16 @@ export const SearchProvider = ({ children }) => {
     if (query) {
       setSearchQuery(query);
       setHighlightQuery(query);
-      handleSearch(query, textIds, page);
+      const searchConfig = {
+        searchType: 'simple',
+        searchFields: [{
+          term: query,
+          searchIn: 'tok',
+          definite: false,
+          proclitic: false
+        }]
+      };
+      handleSearch(searchConfig, textIds, page);
     }
   }, [handleSearch]);
 
@@ -175,13 +185,10 @@ export const SearchProvider = ({ children }) => {
     allSearchResults,
     highlightQuery,
     setHighlightQuery,
-    checkA,
-    checkB,
     filteredTexts,
     handleSearch,
     handlePageChange,
     debouncedHandlePageChange,
-    handleProcliticsChange,
     resetSearch,
     initializeSearchFromParams,
   };

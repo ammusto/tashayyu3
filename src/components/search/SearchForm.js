@@ -1,14 +1,22 @@
-import React, { useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { useSearch } from '../context/SearchContext';
 import FilterDropdown from './FilterDropdown';
 import TextFilterList from './TextFilterList';
 import SelectedTextsList from './SelectedTextsList';
 import DateRangeSlider from './DateRangeSlider';
-import SearchInput from './SearchInput';
+import SearchTab from './SearchTab';
 
-const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds = [], isOpen, onToggle }) => {
+const SearchForm = ({ 
+  onSearch, 
+  onResetSearch, 
+  searchConfig, 
+  setSearchConfig,
+  initialQuery = '', 
+  initialTextIds = [], 
+  isOpen, 
+  onToggle 
+}) => {
   const {
-    setSearchQuery,
     selectedTexts,
     setSelectedTexts,
     metadata,
@@ -17,141 +25,140 @@ const SearchForm = ({ onSearch, onResetSearch, initialQuery = '', initialTextIds
     selectedGenres,
     setSelectedGenres,
     resetSearch,
-    searchQuery,
-    handleProcliticsChange
+    dateRange,
   } = useSearch();
 
-  const [localQuery, setLocalQuery] = useState(initialQuery);
+  const [activeTab, setActiveTab] = useState('select');
   const isInitialMount = useRef(true);
 
-  const handleQueryChange = useCallback((value) => {
-    setLocalQuery(value);
-    setSearchQuery(value);
-  }, [setSearchQuery]);
-
-  const handleProcliticsChangeLocal = useCallback((checkA, checkB) => {
-    handleProcliticsChange(checkA, checkB);
-  }, [handleProcliticsChange]);
-
-  const handleSubmit = useCallback((e) => {
-    e.preventDefault();
-    setSearchQuery(localQuery);
-    onSearch(localQuery, selectedTexts, 1);
-  }, [onSearch, localQuery, selectedTexts, setSearchQuery]);
-
-  const handleReset = useCallback(() => {
-    setLocalQuery('');
-    setSearchQuery('');
-    resetSearch();
-    onResetSearch();
-  }, [resetSearch, onResetSearch, setSearchQuery]);
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
 
   const handleResetGenres = useCallback(() => {
     setSelectedGenres([]);
   }, [setSelectedGenres]);
 
-  const handleToggle = useCallback((e) => {
-    e.stopPropagation();
-    onToggle();
-  }, [onToggle]);
+  const handleReset = useCallback(() => {
+    resetSearch();
+    onResetSearch();
+  }, [resetSearch, onResetSearch]);
+
+  // Field change handler for search inputs
+  const handleFieldChange = useCallback((index, name, value, type = null) => {
+    setSearchConfig(prev => {
+      const newConfig = { ...prev };
+      
+      // Handle fields based on search type
+      if (prev.searchType === 'simple') {
+        newConfig.searchFields[0] = {
+          ...newConfig.searchFields[0],
+          [name]: value
+        };
+      } 
+      else if (prev.searchType === 'advanced') {
+        const fields = type === 'AND' ? [...prev.searchFields.filter(f => f.tabType === 'AND')] 
+                                    : [...prev.searchFields.filter(f => f.tabType === 'OR')];
+        fields[index] = { ...fields[index], [name]: value };
+        newConfig.searchFields = [...fields];
+      }
+      else if (prev.searchType === 'proximity') {
+        if (index === 0) {
+          newConfig.searchFields.firstTerm = {
+            ...newConfig.searchFields.firstTerm,
+            [name]: value
+          };
+        } else {
+          newConfig.searchFields.secondTerm = {
+            ...newConfig.searchFields.secondTerm,
+            [name]: value
+          };
+        }
+      }
+      
+      return newConfig;
+    });
+  }, [setSearchConfig]);
 
   useEffect(() => {
     if (isInitialMount.current) {
       if (initialQuery !== '') {
-        setLocalQuery(initialQuery);
-        setSearchQuery(initialQuery);
-        onToggle();
-
+        setActiveTab('search');
       }
       if (initialTextIds.length > 0) {
         setSelectedTexts(initialTextIds);
       }
       isInitialMount.current = false;
     }
-  }, [initialQuery, initialTextIds, setSearchQuery, setSelectedTexts, onToggle]);
-
-  useEffect(() => {
-    if (!isInitialMount.current && searchQuery !== localQuery) {
-      setLocalQuery(searchQuery);
-    }
-  }, [searchQuery, localQuery]);
-
-  const memoizedSearchInput = useMemo(() => (
-    <SearchInput
-      value={localQuery}
-      onChange={handleQueryChange}
-      placeholder="Search"
-      onProcliticsChange={handleProcliticsChangeLocal}
-    />
-  ), [localQuery, handleQueryChange, handleProcliticsChangeLocal]);
-
-  const memoizedFilterDropdown = useMemo(() => (
-    <FilterDropdown
-      label=""
-      options={metadata?.genreOptions || []}
-      selectedOptions={selectedGenres}
-      onSelectionChange={setSelectedGenres}
-      onReset={handleResetGenres}
-    />
-  ), [metadata?.genreOptions, selectedGenres, setSelectedGenres, handleResetGenres]);
-
-console.log('Local Query:', localQuery)
+  }, [initialQuery, initialTextIds, setSelectedTexts]);
 
   return (
     <div className="search-form-container">
-      <form onSubmit={handleSubmit}>
-        <div className="search-bar-container">
-          {memoizedSearchInput}
-          <button
-            type="button"
-            className="toggle-form-button"
-            onClick={handleToggle}
-            aria-label={isOpen ? "Hide search options" : "Show search options"}
-          >
-            {isOpen ? '☰🡅' : '☰🡇'}
-          </button>
-        </div>
+      <div className="search-tabs">
+        <button
+          className={`search-tab ${activeTab === 'select' ? 'active' : ''}`}
+          onClick={() => handleTabChange('select')}
+        >
+          Select Texts
+        </button>
+        <button
+          className={`search-tab ${activeTab === 'search' ? 'active' : ''}`}
+          onClick={() => handleTabChange('search')}
+        >
+          Search
+        </button>
+      </div>
 
-        <div className={`search-options ${isOpen ? 'open' : 'closed'}`}>
-          <div className="filter-middle flex">
-            <div className='filter-left'>
-              <div className='filter-container flex center'>
-                <strong>Filter Authors and Texts</strong>
-                <input
-                  type="text"
-                  value={textFilter}
-                  onChange={(e) => setTextFilter(e.target.value)}
-                  placeholder=""
-                />
-                <strong>Select Genres</strong>
-                {memoizedFilterDropdown}
-                <DateRangeSlider />
-                <strong>Selected Texts</strong>
-                <SelectedTextsList />
+      <div className="tab-content">
+        {activeTab === 'select' && (
+          <div className="select-texts-container">
+            <div className="filter-middle flex">
+              <div className='filter-left'>
+                <div className='filter-container flex center'>
+                  <strong>Filter Authors and Texts</strong>
+                  <input
+                    type="text"
+                    value={textFilter}
+                    onChange={(e) => setTextFilter(e.target.value)}
+                    placeholder="Filter texts..."
+                  />
+                  <strong>Select Genres</strong>
+                  <FilterDropdown
+                    label=""
+                    options={metadata?.genreOptions || []}
+                    selectedOptions={selectedGenres}
+                    onSelectionChange={setSelectedGenres}
+                    onReset={handleResetGenres}
+                  />
+                  <DateRangeSlider />
+                  <strong>Selected Texts</strong>
+                  <SelectedTextsList />
+                </div>
+              </div>
+              <div className="filter-right center">
+                <TextFilterList initialTextIds={initialTextIds} />
               </div>
             </div>
-            <div className="filter-right center">
-              <TextFilterList initialTextIds={initialTextIds} />
-            </div>
           </div>
-        </div>
-        <div className='flex search-button-container'>
-          <button
-            type="submit"
-            className='search-button'
-            disabled={localQuery.trim() === ''}
-            >
-            Search
-          </button>
-          <button
-            type="button"
-            className='reset-button'
-            onClick={handleReset}
-          >
-            Reset Search and Filters
-          </button>
-        </div>
-      </form>
+        )}
+        {activeTab === 'search' && (
+          <SearchTab 
+            onSearch={onSearch}
+            searchConfig={searchConfig}
+            handleFieldChange={handleFieldChange}
+          />
+        )}
+      </div>
+
+      <div className='flex search-button-container'>
+        <button
+          type="button"
+          className='reset-button'
+          onClick={handleReset}
+        >
+          Reset Search and Filters
+        </button>
+      </div>
     </div>
   );
 };

@@ -7,11 +7,19 @@ import DownloadButton from '../search/DownloadButton';
 import './Search.css';
 import LoadingGif from '../utils/LoadingGif';
 
-const ITEMS_PER_PAGE = 20;
-
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [isSearchFormOpen, setIsSearchFormOpen] = useState(true);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [searchConfig, setSearchConfig] = useState({
+    searchType: 'simple',
+    searchFields: [{
+      term: '',
+      searchIn: 'tok',
+      definite: false,
+      proclitic: false
+    }]
+  });
 
   const {
     displayedResults,
@@ -30,11 +38,14 @@ const SearchPage = () => {
     highlightQuery,
     setHighlightQuery,
     initializeSearchFromParams,
+    selectedTexts,
   } = useSearch();
 
-  const updateSearchParams = useCallback((query, texts, page) => {
+  const updateSearchParams = useCallback((config, texts, page) => {
     const newSearchParams = new URLSearchParams();
-    if (query) newSearchParams.set('query', query);
+    if (config.searchFields[0]?.term) {
+      newSearchParams.set('query', config.searchFields[0].term);
+    }
     if (page !== 1) newSearchParams.set('page', page.toString());
     if (texts.length > 0 && texts.length !== (metadata?.texts || []).length) {
       newSearchParams.set('text_ids', texts.join(','));
@@ -42,17 +53,28 @@ const SearchPage = () => {
     setSearchParams(newSearchParams, { replace: true });
   }, [setSearchParams, metadata]);
 
-  const handleSearchSubmit = useCallback((query, texts, page) => {
-    setHighlightQuery(query);
-    handleSearch(query, texts, page);
-    updateSearchParams(query, texts, page);
+  const handleSearchSubmit = useCallback((newConfig, texts, page = 1) => {
+    setSearchConfig(newConfig);
+    setHighlightQuery(newConfig.searchFields[0]?.term || '');
+    handleSearch(newConfig, texts, page, itemsPerPage);
+    updateSearchParams(newConfig, texts, page);
     setIsSearchFormOpen(false);
-  }, [handleSearch, updateSearchParams, setHighlightQuery]);
+  }, [handleSearch, updateSearchParams, setHighlightQuery, itemsPerPage]);
 
   const handleResetSearch = useCallback(() => {
     resetSearch();
     setSearchParams({});
     setIsSearchFormOpen(true);
+    setItemsPerPage(20);
+    setSearchConfig({
+      searchType: 'simple',
+      searchFields: [{
+        term: '',
+        searchIn: 'tok',
+        definite: false,
+        proclitic: false
+      }]
+    });
   }, [resetSearch, setSearchParams]);
 
   const toggleSearchForm = useCallback(() => {
@@ -67,13 +89,15 @@ const SearchPage = () => {
     <SearchForm
       onResetSearch={handleResetSearch}
       onSearch={handleSearchSubmit}
+      searchConfig={searchConfig}
+      setSearchConfig={setSearchConfig}
       initialQuery={searchParams.get('query') || ''}
       initialTextIds={searchParams.get('text_ids')?.split(',').map(Number) || []}
       isOpen={isSearchFormOpen}
       totalResults={totalResults}
       onToggle={toggleSearchForm}
     />
-  ), [handleResetSearch, handleSearchSubmit, searchParams, isSearchFormOpen, totalResults, toggleSearchForm]);
+  ), [handleResetSearch, handleSearchSubmit, searchConfig, searchParams, isSearchFormOpen, totalResults, toggleSearchForm]);
 
   const memoizedResults = useMemo(() => (
     !isSearching && !isChangingPage && hasSearched && (
@@ -83,11 +107,12 @@ const SearchPage = () => {
         currentPage={currentPage}
         totalResults={totalResults}
         totalPages={totalPages}
-        itemsPerPage={ITEMS_PER_PAGE}
+        itemsPerPage={itemsPerPage}
         onPageChange={handlePageChange}
       />
     )
-  ), [isSearching, isChangingPage, hasSearched, displayedResults, highlightQuery, currentPage, totalResults, totalPages, handlePageChange]);
+  ), [isSearching, isChangingPage, hasSearched, displayedResults, highlightQuery, 
+      currentPage, totalResults, totalPages, itemsPerPage, handlePageChange]);
 
   return (
     <div className='container'>
@@ -95,7 +120,7 @@ const SearchPage = () => {
         {memoizedSearchForm}
         {(isSearching || isChangingPage) && <div className='text-content center'><p><LoadingGif divs={false}/></p></div>}
         {memoizedResults}
-        {displayedResults.length > 0 && isSearching === false && (
+        {displayedResults.length > 0 && !isSearching && (
           <DownloadButton allSearchResults={allSearchResults} searchQuery={searchQuery} />
         )}
       </div>

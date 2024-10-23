@@ -14,10 +14,12 @@ const TextPage = () => {
     { key: 'id', label: 'Text ID' },
     { key: 'title_ar', label: 'Arabic Title' },
     { key: 'title_lat', label: 'Latinized Title' },
-    { key: 'ed_info', label: 'Contributor' },
+    { key: 'ed_info', label: 'Edition' },
     { key: 'length', label: 'Word Length' },
     { key: 'tags', label: 'Genre' },
     { key: 'file_name', label: 'File Link' },
+    { key: 'contrib', label: 'Contributor' },
+
   ], []);
 
   const downloadTextAsCSV = useCallback(() => {
@@ -83,10 +85,17 @@ const TextPage = () => {
                 text[key] !== undefined && (
                   <tr key={key}>
                     <td>{label}</td>
-                    <td>{Array.isArray(text[key]) ? text[key].join(', ') : text[key]}</td>
+                    <td>
+                      {key === 'file_name' ? (
+                        <a href={text[key]} target="_blank" rel="noopener noreferrer">Download</a>
+                      ) : (
+                        Array.isArray(text[key]) ? text[key].join(', ') : text[key]
+                      )}
+                    </td>
                   </tr>
                 )
               ))}
+
               <tr>
                 <td>Metadata</td>
                 <td><button className="text-button" onClick={downloadTextAsCSV}>Download as CSV</button></td>
